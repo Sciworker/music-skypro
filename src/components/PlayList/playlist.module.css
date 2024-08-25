@@ -28,23 +28,40 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    /* position: relative; */
 }
 
+/* playlist.module.css */
 .item {
+    cursor: pointer;
+    position: relative;
+}
+
+/* Стили для span внутри .item */
+.item span {
+    padding: 9px 20px;
+    border: 1px solid #ffffff;
+    border-radius: 60px;
     font-style: normal;
     font-weight: 400;
     font-size: 16px;
     line-height: 24px;
-    border: 1px solid #ffffff;
-    border-radius: 60px;
-    padding: 6px 20px;
-    cursor: pointer;
+    transition: all 0.3s ease; /* Плавное изменение стилей */
 }
 
-.item:hover {
-    border-color: #d9b6ff;
-    color: #d9b6ff;
+/* Стили для span внутри .item при наведении */
+.item span:hover {
+    border-color: #B672FF;
+    color: #B672FF;
 }
+
+/* Активное состояние для span внутри .item */
+.item.active span {
+    border-color: #B672FF !important;
+    color: #B672FF !important;
+}
+
+
 
 .playlistContent {
     margin-top: 51px;
