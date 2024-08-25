@@ -1,128 +1,146 @@
-import React from 'react'
-import styles from './playlist.module.css'
+'use client';
+
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import axios from 'axios';
+import styles from './playlist.module.css';
 import NoteIcon from '../../../public/icon/note.svg';
 import LikeIcon from '../../../public/icon/like-track.svg';
 import ClickIcon from '../../../public/icon/watch.svg';
 import Link from 'next/link';
+import Popup from '../Popup/Popup';
+import { changeDurationFormat } from '@/utils/changeDurationFormat';
 
-const PlayList = () => {
+interface Track {
+  _id: number;
+  name: string;
+  author: string;
+  release_date: string;
+  album: string;
+  duration_in_seconds?: number;
+  genre?: string;
+}
+
+const PlayList: React.FC = () => {
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+
+  const [popups, setPopups] = useState({
+    author: false,
+    release_date: false,
+    genre: false,
+  });
+
+  const handleShowPopup = useCallback((type: keyof typeof popups) => {
+    setPopups((prev) => ({ ...prev, [type]: true }));
+    setActiveFilter(type);
+  }, []);
+
+  const handleClosePopup = useCallback((type: keyof typeof popups) => {
+    setPopups((prev) => ({ ...prev, [type]: false }));
+    if (activeFilter === type) {
+      setActiveFilter(null);
+    }
+  }, [activeFilter]);
+
+  const getUniqueAuthors = useMemo(() => 
+    Array.from(new Set(tracks.map(track => track.author))), 
+    [tracks]
+  );
+
+  const getUniqueGenres = useMemo(() => 
+    Array.from(new Set(tracks.map(track => {
+      const genre = track.genre || "Без жанра";
+      return (typeof genre === 'string' ? genre.trim().toLowerCase() : String(genre).toLowerCase());
+    }))).map(genre => genre.charAt(0).toUpperCase() + genre.slice(1)), 
+    [tracks]
+  );
+  
+
+  useEffect(() => {
+    const fetchAllTracks = async () => {
+      try {
+        const response = await axios.get('https://webdev-music-003b5b991590.herokuapp.com/catalog/track/all/');
+        const tracksData = response.data.data || [];
+
+        setTracks(tracksData);
+      } catch (err) {
+        setError('Ошибка при загрузке данных');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllTracks();
+  }, []);
+
+  if (loading) return <div>Загрузка...</div>;
+  if (error) return <div>{error}</div>;
+  
+
   return (
     <div className={styles.playlist}>
-      <h2 className={styles.title}>
-        Треки
-      </h2>
+      <h2 className={styles.title}>Треки</h2>
       <div className={styles.filter}>
         <div className={styles.searchBy}>Искать по:</div>
         <div className={styles.filters}>
-            <div className={styles.item}>
-                исполнителю
-            </div>
-            <div className={styles.item}>
-                году выпуска
-            </div>
-            <div className={styles.item}>
-                жанру
-            </div>
+          <div
+            onClick={() => handleShowPopup('author')}
+            className={`${styles.item} ${activeFilter === 'author' ? styles.active : ''}`}
+          >
+            <span>исполнителю</span>
+            {popups.author && (
+              <Popup content={getUniqueAuthors} onClose={() => handleClosePopup('author')} />
+            )}
+          </div>
+          <div
+            onClick={() => handleShowPopup('release_date')}
+            className={`${styles.item} ${activeFilter === 'release_date' ? styles.active : ''}`}
+          >
+            <span>году выпуска</span>
+            {popups.release_date && (
+              <Popup content={['По умолчанию', 'Сначала новые', 'Сначала старые']} onClose={() => handleClosePopup('release_date')} />
+            )}
+          </div>
+          <div
+            onClick={() => handleShowPopup('genre')}
+            className={`${styles.item} ${activeFilter === 'genre' ? styles.active : ''}`}
+          >
+            <span>жанру</span>
+            {popups.genre && (
+              <Popup content={getUniqueGenres} onClose={() => handleClosePopup('genre')} />
+            )}
+          </div>
         </div>
       </div>
       <div className={styles.playlistContent}>
         <div className={styles.playlistTitles}>
-            <div className={styles.track}>
-                Трек
-            </div>
-            <div className={styles.performer}>
-                Исполнитель
-            </div>
-            <div className={styles.album}>
-                Альбом
-            </div>
-            <div className={styles.duration}>
-                <ClickIcon className={styles.likeIcon}/>
-            </div>
+          <div className={styles.track}>Трек</div>
+          <div className={styles.performer}>Исполнитель</div>
+          <div className={styles.album}>Альбом</div>
+          <div className={styles.duration}><ClickIcon className={styles.likeIcon}/></div>
         </div>
         <div className={styles.trackList}>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div> Guilt</Link>
-                <Link href='#' className={styles.trackAuthor}>Nero</Link>
-                <Link href='#' className={styles.trackAlbum}>Welcome Reality</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/> 4:44</div>
+          {tracks.map((track) => (
+            <div key={track._id} className={styles.trackItem}>
+              <Link href='#' className={styles.trackTitle}>
+                <div className={styles.image}><NoteIcon className={styles.note}/></div> 
+                {track.name}
+              </Link>
+              <Link href='#' className={styles.trackAuthor}>{track.author}</Link>
+              <Link href='#' className={styles.trackAlbum}>{track.album}</Link>
+              <div className={styles.trackTime}>
+                <LikeIcon className={styles.likeIcon}/> 
+                {changeDurationFormat(track.duration_in_seconds ?? 0)}
+              </div>
             </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div> Elektro</Link>
-                <Link href='#' className={styles.trackAuthor}>Dynoro, Outwork, Mr. Gee</Link>
-                <Link href='#' className={styles.trackAlbum}>Elektro</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>2:22</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>I’m Fire</Link>
-                <Link href='#' className={styles.trackAuthor}>Ali Bakgor</Link>
-                <Link href='' className={styles.trackAlbum}>I’m Fire</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>2:22</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Non Stop (Remix)</Link>
-                <Link href='#' className={styles.trackAuthor}>Стоункат, Psychopath</Link>
-                <Link href='#'  className={styles.trackAlbum}>Non Stop</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>4:12</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Run Run (feat. AR/CO)</Link>
-                <Link href='#' className={styles.trackAuthor}>Jaded, Will Clarke, AR/CO</Link>
-                <Link href='#'  className={styles.trackAlbum}>Run Run</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>2:54</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Eyes on Fire (Zeds Dead Remix)</Link>
-                <Link href='#' className={styles.trackAuthor}>Blue Foundation, Zeds Dead</Link>
-                <Link href='#'  className={styles.trackAlbum}>Eyes on Fire</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>5:20</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Mucho Bien (Hi Profile Remix)</Link>
-                <Link href='#' className={styles.trackAuthor}>HYBIT, Mr. Black, Offer Nissim, Hi Profile</Link>
-                <Link href='#'  className={styles.trackAlbum}>Mucho Bien</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>3:41</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Knives n Cherries</Link>
-                <Link href='#' className={styles.trackAuthor}>minthaze</Link>
-                <Link href='#'  className={styles.trackAlbum}>Captivating</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>1:48</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Knives n Cherries</Link>
-                <Link href='#' className={styles.trackAuthor}>minthaze</Link>
-                <Link href='#'  className={styles.trackAlbum}>Captivating</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>1:48</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Knives n Cherries</Link>
-                <Link href='#' className={styles.trackAuthor}>minthaze</Link>
-                <Link href='#'  className={styles.trackAlbum}>Captivating</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>1:48</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Knives n Cherries</Link>
-                <Link href='#' className={styles.trackAuthor}>minthaze</Link>
-                <Link href='#'  className={styles.trackAlbum}>Captivating</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>1:48</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Knives n Cherries</Link>
-                <Link href='#' className={styles.trackAuthor}>minthaze</Link>
-                <Link href='#'  className={styles.trackAlbum}>Captivating</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>1:48</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Knives n Cherries</Link>
-                <Link href='#' className={styles.trackAuthor}>minthaze</Link>
-                <Link href='#'  className={styles.trackAlbum}>Captivating</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>1:48</div>
-            </div>
+          ))}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default PlayList
+export default PlayList;
