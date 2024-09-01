@@ -2,11 +2,8 @@
 
 import React, { useRef, useEffect } from 'react';
 import styles from './popup.module.css';
+import { PopupProps } from '../../types/types';
 
-interface PopupProps {
-  content: string | string[];
-  onClose: () => void;
-}
 
 const Popup: React.FC<PopupProps> = ({ content, onClose }) => {
   const popupRef = useRef<HTMLDivElement>(null);

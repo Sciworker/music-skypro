@@ -1,0 +1,35 @@
+.playlistTitles {
+    display: flex;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    letter-spacing: 2px;
+    color: #696969;
+    text-transform: uppercase;
+}
+
+.track {
+    width: 447px;
+}
+
+.performer {
+    width: 321px;
+}
+
+.album {
+    width: 245px;
+}
+
+.duration {
+    width: 67px;
+    text-align: right;
+}
+
+.note {
+    color: #313131;
+}
+
+.likeIcon {
+    color: #181818;
+}
