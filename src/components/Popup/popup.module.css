@@ -1,0 +1,30 @@
+/* Popup.module.css */
+.popup {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    width: 248px;
+    height: 305px;
+    background-color: #313131;
+    border-radius: 12px;
+    padding: 34px;
+}
+
+.popupContent {
+    background-color: #313131;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    height: 250px;
+    overflow-x: auto;
+}
+
+.popupItem {
+    font-size: 18px;
+    line-height: 24px;
+    cursor: pointer;
+}
+.popupItem:hover {
+    color: #B672FF;
+
+}

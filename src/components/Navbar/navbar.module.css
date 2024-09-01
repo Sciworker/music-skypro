@@ -19,6 +19,7 @@
     -webkit-box-pack: justify;
     -ms-flex-pack: justify;
     justify-content: space-between;
+    cursor: pointer;
 }
 
 .burgerLine {
@@ -50,3 +51,13 @@
 .menuItem a {
     color: #fff;
 }
+
+.nav {
+    opacity: 0;
+    visibility: hidden;
+}
+  
+.navOpen {
+    opacity: 1;
+    visibility: visible;
+  }
