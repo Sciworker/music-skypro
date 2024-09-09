@@ -84,7 +84,26 @@
     cursor: pointer;
 }
 
+.shuffleIcon,.activeShuffleIcon {
+    margin-right: 24px;
+}
 
+.shuffleIcon {
+    color: #696969;  
+    
+    cursor: pointer;
+}
+
+.shuffleIcon:hover {
+    color: #acacac;  
+    
+}
+
+.activeShuffleIcon {
+    color: #ffffff;  
+    
+    cursor: pointer;
+}
 
 .track {
     display: flex;
@@ -158,14 +177,6 @@
     color: #acacac;
 }
 
-.shuffleIcon {
-    color: #696969;
-    cursor: pointer;
-}
-
-.shuffleIcon:hover {
-    color: #acacac;
-}
 
 
 .disLikeIcon {
@@ -190,3 +201,4 @@
     cursor: pointer;
     color: #acacac;
 }
+

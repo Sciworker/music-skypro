@@ -112,6 +112,13 @@
 .trackTitle.activeTrack {
     font-weight: bold;
 }
+
+.circleStatic {
+    width: 16px;
+    height: 16px;
+    background-color: #B672FF;
+    border-radius: 50%;
+}
   
 .trackTitle.activeTrack {
     font-weight: bold;

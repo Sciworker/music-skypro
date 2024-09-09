@@ -1,90 +1,137 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
-import styles from './playlist.module.css';
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import {
+  setCurrentTrack,
+  togglePlayPause,
+  setRepeat,
+  setShuffle,
+  nextTrack,
+  previousTrack,
+  setActiveFilter,
+  setPopups,
+} from '../../redux/playlist/slice';
+import {
+  selectCurrentTrack,
+  selectCurrentPlaylist,
+  selectIsPlaying,
+  selectIsRepeat,
+  selectIsShuffle,
+  selectLoading,
+  selectError,
+  selectActiveFilter,
+  selectPopups,
+} from '../../redux/playlist/selectors';
 import PlayListFilters from '../PlayListFilters/PlayListFilters';
 import TrackList from '../TrackList/TrackList';
 import ControlBar from '../ControlBar/ControlBar';
 import PlayListTitles from '../PlayListTitles/PlayListTitles';
-import { Track, PopupType } from '../../types/types';
-import { fetchTracks } from '../../modules/api';
+import { fetchTracks } from '../../redux/playlist/asyncActions';
+import { PopupType, Track } from '../../redux/playlist/types';
+import { store, useAppDispatch } from '@/redux/store';
+import styles from './playlist.module.css';
 
 const PlayList: React.FC = () => {
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<PopupType | null>(null);
-  const [popups, setPopups] = useState<Record<PopupType, boolean>>({
-    author: false,
-    release_date: false,
-    genre: false,
-  });
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+  const dispatch = useAppDispatch();
+  const currentTrack = useSelector(selectCurrentTrack);
+  const currentPlaylist = useSelector(selectCurrentPlaylist);
+  const isPlaying = useSelector(selectIsPlaying);
+  const isRepeat = useSelector(selectIsRepeat);
+  const isShuffle = useSelector(selectIsShuffle);
+  const loading = useSelector(selectLoading);
+  const error = useSelector(selectError);
+  const activeFilter = useSelector(selectActiveFilter);
+  const popups = useSelector(selectPopups);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
-  const [isRepeat, setIsRepeat] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
-    const loadTracks = async () => {
-      try {
-        const tracksData = await fetchTracks();
-        setTracks(tracksData);
-      } catch (err) {
-        setError('Ошибка при загрузке данных');
-      } finally {
-        setLoading(false);
-      }
-    };
+    dispatch(fetchTracks());
+  }, [dispatch]);
 
-    loadTracks();
-  }, []);
-
-  useEffect(() => {
+  const playTrack = (track:Track) => {
     if (audio) {
-      const updateTime = () => setCurrentTime(audio.currentTime);
-      audio.addEventListener('timeupdate', updateTime);
-      return () => audio.removeEventListener('timeupdate', updateTime);
+      audio.pause();
     }
-  }, [audio]);
-
-  const playTrack = (track: Track) => {
-    if (audio) audio.pause();
     const newAudio = new Audio(track.track_file);
     newAudio.play();
     setAudio(newAudio);
-    setCurrentTrack(track);
+    dispatch(setCurrentTrack(track));
   };
 
-  const playPauseTrack = () => {
-    if (audio) audio.paused ? audio.play() : audio.pause();
+  const togglePlayPauseTrack = () => {
+    if (audio) {
+      if (isPlaying) {
+        audio.pause();
+      } else {
+        audio.play();
+      }
+      dispatch(togglePlayPause());
+    }
+  };
+  
+  const nextTrackHandler = () => {
+    dispatch(nextTrack());
+  
+    if (audio) {
+      audio.pause();
+    }
+  
+    const newTrack = store.getState().playlist.currentTrack;
+  
+    if (newTrack) {
+      const newAudio = new Audio(newTrack.track_file);
+      
+      setAudio(newAudio);
+  
+      try {
+        newAudio.play();
+      } catch (err) {
+        console.error("Не удалось воспроизвести трек: ", err);
+      }
+    }
+  };
+  
+  const previousTrackHandler = () => {
+    dispatch(previousTrack());  
+
+    if (audio) {
+      audio.pause();
+    }
+
+    const newTrack = store.getState().playlist.currentTrack;
+  
+    if (newTrack) {
+      const newAudio = new Audio(newTrack.track_file);
+      
+      setAudio(newAudio);
+      try {
+        newAudio.play();
+      } catch (err) {
+        console.error("Не удалось воспроизвести трек: ", err);
+      }
+    }
   };
 
-  const shuffleTrack = () => alert('Еще не реализовано');
-  const nextTrack = () => alert('Еще не реализовано');
-  const previousTrack = () => alert('Еще не реализовано');
 
-  const getUniqueGenres = useMemo(() => 
-    Array.from(new Set(tracks.map(track => {
-      const genre = track.genre || "Без жанра";
-      return (typeof genre === 'string' ? genre.trim().toLowerCase() : String(genre).toLowerCase());
-    }))).map(genre => genre.charAt(0).toUpperCase() + genre.slice(1)), 
-    [tracks]
-  );
+  const handleShowPopup = (type: PopupType) => {
+    dispatch(setPopups({ type, value: true }));
+    dispatch(setActiveFilter(type));
+  };
 
-  const getUniqueAuthors = useMemo(() => 
-    Array.from(new Set(tracks.map(track => track.author))), 
-    [tracks]
-  );
+  const handleClosePopup = (type: PopupType) => {
+    dispatch(setPopups({ type, value: false }));
+    if (activeFilter === type) {
+      dispatch(setActiveFilter(null));
+    }
+  };
 
-  const handleShowPopup = useCallback((type: PopupType) => {
-    setPopups(prev => ({ ...prev, [type]: true }));
-    setActiveFilter(type);
-  }, []);
+  const getUniqueGenres = () =>
+    Array.from(new Set(currentPlaylist.map(track => (track.genre || 'Без жанра'))))
+      .map(genre => String(genre).charAt(0).toUpperCase() + String(genre).slice(1).toLowerCase());
 
-  const handleClosePopup = useCallback((type: PopupType) => {
-    setPopups(prev => ({ ...prev, [type]: false }));
-    if (activeFilter === type) setActiveFilter(null);
-  }, [activeFilter]);
+  const getUniqueAuthors = () =>
+    Array.from(new Set(currentPlaylist.map(track => track.author)));
 
   if (loading) return <div>Загрузка...</div>;
   if (error) return <div>{error}</div>;
@@ -92,32 +139,35 @@ const PlayList: React.FC = () => {
   return (
     <div className={styles.playlist}>
       <h2 className={styles.title}>Треки</h2>
-      <PlayListFilters 
-        activeFilter={activeFilter} 
-        popups={popups} 
-        getUniqueAuthors={getUniqueAuthors} 
-        getUniqueGenres={getUniqueGenres} 
-        handleShowPopup={handleShowPopup} 
+      <PlayListFilters
+        activeFilter={activeFilter}
+        popups={popups}
+        getUniqueAuthors={getUniqueAuthors()}
+        getUniqueGenres={getUniqueGenres()}
+        handleShowPopup={handleShowPopup}
         handleClosePopup={handleClosePopup}
       />
       <div className={styles.playlistContent}>
         <PlayListTitles />
         <TrackList 
-          tracks={tracks} 
+          tracks={currentPlaylist}
           onPlayTrack={playTrack} 
-          currentTrackId={currentTrack?._id || null} 
+          currentTrackId={currentTrack?._id || null}
+          isPlaying={isPlaying} 
         />
       </div>
       <ControlBar
         currentTrack={currentTrack}
         audio={audio}
-        onPlayPause={playPauseTrack}
-        onShuffle={shuffleTrack}
-        onNextTrack={nextTrack}
-        onPreviousTrack={previousTrack}
+        onPlayPause={togglePlayPauseTrack}
+        onShuffle={() => dispatch(setShuffle(!isShuffle))}
+        onNextTrack={nextTrackHandler}
+        onPreviousTrack={previousTrackHandler}
         isRepeat={isRepeat}
-        onToggleRepeat={() => setIsRepeat(prev => !prev)}
-        currentTime={currentTime} 
+        isShuffle={isShuffle}
+        onToggleRepeat={() => dispatch(setRepeat(!isRepeat))}
+        onToggleShuffle={() => dispatch(setShuffle(!isShuffle))}
+        currentTime={audio?.currentTime || 0}
         totalTime={currentTrack?.duration_in_seconds || 0}
       />
     </div>

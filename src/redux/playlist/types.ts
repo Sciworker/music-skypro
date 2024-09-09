@@ -7,6 +7,7 @@ export interface Track {
     duration_in_seconds?: number;
     genre?: string;
     track_file: string;
+    audioSrc: string;
 }
   
 export type PopupType = 'author' | 'release_date' | 'genre';
@@ -15,19 +16,23 @@ export interface ControlBarProps {
     currentTrack: Track | null;
     audio: HTMLAudioElement | null;
     onPlayPause: () => void;
-    onShuffle: () => void;
     onNextTrack: () => void;
     onPreviousTrack: () => void;
     isRepeat: boolean;
-    onToggleRepeat: () => void; 
+    isShuffle: boolean;
+    onToggleRepeat: () => void;
+    onToggleShuffle: () => void; // Add this line
     currentTime: number;
     totalTime: number;
-}
+  }
+  
+
 
 export interface TrackListProps {
     tracks: Track[];
     onPlayTrack: (track: Track) => void;
     currentTrackId: number | null;
+    isPlaying: boolean;
 }
 
 

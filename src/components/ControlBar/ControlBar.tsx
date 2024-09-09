@@ -21,11 +21,12 @@ const ControlBar: React.FC<ControlBarProps> = ({
   currentTrack,
   audio,
   onPlayPause,
-  onShuffle,
   onNextTrack,
   onPreviousTrack,
   isRepeat,
+  isShuffle,
   onToggleRepeat,
+  onToggleShuffle,
   currentTime, 
   totalTime
 }) => {
@@ -98,7 +99,12 @@ const ControlBar: React.FC<ControlBarProps> = ({
               className={isRepeat ? styles.activeReplayIcon : styles.replayIcon} 
               onClick={onToggleRepeat} 
             />
-            <ShuffleIcon width={18} height={11} className={styles.shuffleIcon} onClick={onShuffle} />
+            <ShuffleIcon
+            width={18}
+            height={11}
+            className={isShuffle ? styles.activeShuffleIcon : styles.shuffleIcon} 
+            onClick={onToggleShuffle}
+          />
           </div>
           {currentTrack && (
             <div className={styles.track}>

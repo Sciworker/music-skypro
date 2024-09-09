@@ -6,9 +6,7 @@ import Link from 'next/link';
 import { changeDurationFormat } from '@/utils/changeDurationFormat';
 import { TrackListProps } from '../../types/types';
 
-
-
-const TrackList: React.FC<TrackListProps> = ({ tracks, onPlayTrack, currentTrackId }) => {
+const TrackList: React.FC<TrackListProps> = ({ tracks, onPlayTrack, currentTrackId, isPlaying }) => {
   return (
     <div className={styles.trackList}>
       {tracks.map((track) => (
@@ -23,7 +21,11 @@ const TrackList: React.FC<TrackListProps> = ({ tracks, onPlayTrack, currentTrack
           >
             <div className={styles.image}>
               {track._id === currentTrackId ? (
-                <div className={styles.circle}></div>
+                isPlaying ? (
+                  <div className={styles.circle}></div>
+                ) : (
+                  <div className={styles.circleStatic}></div>
+                )
               ) : (
                 <NoteIcon className={styles.note} />
               )}
