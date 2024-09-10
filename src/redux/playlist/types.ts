@@ -21,11 +21,11 @@ export interface ControlBarProps {
     isRepeat: boolean;
     isShuffle: boolean;
     onToggleRepeat: () => void;
-    onToggleShuffle: () => void; // Add this line
-    currentTime: number;
+    onToggleShuffle: () => void;
     totalTime: number;
+    currentTime?: number;
+    onShuffle?: () => void;
   }
-  
 
 
 export interface TrackListProps {

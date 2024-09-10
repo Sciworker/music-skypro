@@ -59,6 +59,23 @@ const PlayList: React.FC = () => {
     dispatch(setCurrentTrack(track));
   };
 
+  useEffect(() => {
+    if (audio) {
+      audio.addEventListener('ended', handleTrackEnd);
+      return () => {
+        audio.removeEventListener('ended', handleTrackEnd);
+      };
+    }
+  }, [audio]);
+  
+  const handleTrackEnd = () => {
+    const currentTrackIndex = currentPlaylist.findIndex(track => track._id === currentTrack?._id);
+  
+    if (currentTrackIndex < currentPlaylist.length - 1) {
+      nextTrackHandler();
+    }
+  };
+
   const togglePlayPauseTrack = () => {
     if (audio) {
       if (isPlaying) {

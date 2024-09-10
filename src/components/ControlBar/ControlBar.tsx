@@ -14,7 +14,7 @@ import DisLikeIcon from '../../../public/icon/dislike.svg';
 import NoteIcon from '../../../public/icon/note.svg';
 import Link from 'next/link';
 import { changeDurationFormat } from '@/utils/changeDurationFormat';
-import { ControlBarProps } from '../../types/types';
+import { ControlBarProps } from '../../redux/playlist/types';
 
 
 const ControlBar: React.FC<ControlBarProps> = ({
@@ -27,22 +27,26 @@ const ControlBar: React.FC<ControlBarProps> = ({
   isShuffle,
   onToggleRepeat,
   onToggleShuffle,
-  currentTime, 
   totalTime
 }) => {
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(0.5);
+  const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
     if (audio) {
       audio.volume = volume;
-
-      const updateProgress = () => setProgress((audio.currentTime / audio.duration) * 100);
+  
+      const updateProgress = () => {
+        setProgress((audio.currentTime / audio.duration) * 100);
+        setCurrentTime(audio.currentTime); // Обновляем текущее время
+      };
+  
       const updateDuration = () => setProgress((audio.currentTime / audio.duration) * 100);
-
+  
       audio.addEventListener('timeupdate', updateProgress);
       audio.addEventListener('loadedmetadata', updateDuration);
-
+  
       return () => {
         audio.removeEventListener('timeupdate', updateProgress);
         audio.removeEventListener('loadedmetadata', updateDuration);
