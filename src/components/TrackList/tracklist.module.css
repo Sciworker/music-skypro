@@ -1,22 +1,34 @@
-.playlist {
-    margin-top: 51px;
-}
-
-.title {
-    font-style: normal;
-    font-weight: 400;
-    font-size: 64px;
-    line-height: 72px;
-    letter-spacing: -0.8px;
-}
-
-
-
 .playlistContent {
     margin-top: 51px;
 }
 
+.playlistTitles {
+    display: flex;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    letter-spacing: 2px;
+    color: #696969;
+    text-transform: uppercase;
+}
 
+.track {
+    width: 447px;
+}
+
+.performer {
+    width: 321px;
+}
+
+.album {
+    width: 245px;
+}
+
+.duration {
+    width: 67px;
+    text-align: right;
+}
 
 .trackList {
     margin-top: 24px;
@@ -96,3 +108,42 @@
 .likeIcon {
     color: #181818;
 }
+
+.trackTitle.activeTrack {
+    font-weight: bold;
+}
+
+.circleStatic {
+    width: 16px;
+    height: 16px;
+    background-color: #B672FF;
+    border-radius: 50%;
+}
+  
+.trackTitle.activeTrack {
+    font-weight: bold;
+  }
+  
+  .circle {
+    width: 16px;
+    height: 16px;
+    background-color: #B672FF;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.5);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  

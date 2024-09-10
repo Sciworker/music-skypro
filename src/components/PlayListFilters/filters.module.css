@@ -1,0 +1,47 @@
+.filter {
+    margin-top: 45px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.searchBy {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+.item {
+    cursor: pointer;
+    position: relative;
+}
+
+
+.item span {
+    padding: 9px 20px;
+    border: 1px solid #ffffff;
+    border-radius: 60px;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    transition: all 0.3s ease;
+}
+
+.item span:hover {
+    border-color: #B672FF;
+    color: #B672FF;
+}
+
+.item.active span {
+    border-color: #B672FF !important;
+    color: #B672FF !important;
+}

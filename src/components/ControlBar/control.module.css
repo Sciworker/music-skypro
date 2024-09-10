@@ -13,6 +13,20 @@
     background: #2e2e2e;
 }
 
+.progressContainer {
+    width: 100%;
+    cursor: pointer;
+    height: 5px;
+    background: #2e2e2e;
+    position: relative;
+  }
+  
+  .progress {
+    height: 100%;
+    background-color: #B672FF; 
+    transition: width 0.1s linear;
+  }
+
 .body {
     display: flex;
     height: inherit;
@@ -49,7 +63,7 @@
 }
 
 .prevIcon {
-
+    cursor: pointer;
     margin-right: 23px;
 }
 
@@ -58,11 +72,37 @@
 }
 
 .nextIcon {
+    cursor: pointer;
     margin-right: 28px;
 }
 
-.replayIcon {
+.replayIcon,.activeReplayIcon {
     margin-right: 24px;
+}
+
+.activeReplayIcon {
+    cursor: pointer;
+}
+
+.shuffleIcon,.activeShuffleIcon {
+    margin-right: 24px;
+}
+
+.shuffleIcon {
+    color: #696969;  
+    
+    cursor: pointer;
+}
+
+.shuffleIcon:hover {
+    color: #acacac;  
+    
+}
+
+.activeShuffleIcon {
+    color: #ffffff;  
+    
+    cursor: pointer;
 }
 
 .track {
@@ -70,6 +110,8 @@
     align-items: center;
     width: 100%;
     gap: 12px;
+    z-index: 1000;
+    margin-left: 20px;
 }
 
 .image {
@@ -99,6 +141,9 @@
 
 .volume {
     padding-right: 92px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 .volumeWrap{
@@ -132,14 +177,6 @@
     color: #acacac;
 }
 
-.shuffleIcon {
-    color: #696969;
-    cursor: pointer;
-}
-
-.shuffleIcon:hover {
-    color: #acacac;
-}
 
 
 .disLikeIcon {
@@ -164,3 +201,4 @@
     cursor: pointer;
     color: #acacac;
 }
+
