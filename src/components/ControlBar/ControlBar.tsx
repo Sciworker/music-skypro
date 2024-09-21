@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import styles from './control.module.css';
 import PrevIcon from '../../../public/icon/prev.svg';
 import PlayIcon from '../../../public/icon/play.svg';
@@ -10,12 +10,15 @@ import ReplayIcon from '../../../public/icon/repeat.svg';
 import ShuffleIcon from '../../../public/icon/shuffle.svg';
 import VolumeIcon from '../../../public/icon/volume.svg';
 import LikeIcon from '../../../public/icon/like.svg';
-import DisLikeIcon from '../../../public/icon/dislike.svg';
+import LikedIcon from '../../../public/icon/liked.svg';
 import NoteIcon from '../../../public/icon/note.svg';
 import Link from 'next/link';
 import { changeDurationFormat } from '@/utils/changeDurationFormat';
 import { ControlBarProps } from '../../redux/playlist/types';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { addTrackToFavorites, removeTrackFromFavorites } from '@/redux/favorites/asyncActions';
+import { selectFavoriteTracks } from '@/redux/favorites/selectors';
+import { toast } from 'react-hot-toast';
 
 const ControlBar: React.FC<ControlBarProps> = ({
   currentTrack,
@@ -29,6 +32,8 @@ const ControlBar: React.FC<ControlBarProps> = ({
   onToggleShuffle,
   totalTime
 }) => {
+  const dispatch = useDispatch();
+  const favoriteTracks = useSelector(selectFavoriteTracks);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(0.5);
   const [currentTime, setCurrentTime] = useState(0);
@@ -39,7 +44,7 @@ const ControlBar: React.FC<ControlBarProps> = ({
   
       const updateProgress = () => {
         setProgress((audio.currentTime / audio.duration) * 100);
-        setCurrentTime(audio.currentTime); // Обновляем текущее время
+        setCurrentTime(audio.currentTime);
       };
   
       const updateDuration = () => setProgress((audio.currentTime / audio.duration) * 100);
@@ -65,20 +70,36 @@ const ControlBar: React.FC<ControlBarProps> = ({
     }
   }, [audio, isRepeat]);
 
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const isFavorite = useMemo(() => {
+    return currentTrack ? favoriteTracks.some((track) => track._id === currentTrack._id) : false;
+  }, [currentTrack, favoriteTracks]);
+
+  const handleLikeClick = useCallback(() => {
+    if (currentTrack) {
+      if (isFavorite) {
+        dispatch(removeTrackFromFavorites(currentTrack._id));
+        toast.success(`${currentTrack.name} удалён из избранного`);
+      } else {
+        dispatch(addTrackToFavorites(currentTrack));
+        toast.success(`${currentTrack.name} добавлен в избранное`);
+      }
+    }
+  }, [currentTrack, isFavorite, dispatch]);
+
+  const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = Number(e.target.value) / 100;
     setVolume(newVolume);
     if (audio) audio.volume = newVolume;
-  };
+  }, [audio]);
 
-  const handleLineChange = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleLineChange = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (audio) {
       const { left, width } = e.currentTarget.getBoundingClientRect();
       const newTime = ((e.clientX - left) / width) * audio.duration;
       audio.currentTime = newTime;
       setProgress((newTime / audio.duration) * 100);
     }
-  };
+  }, [audio]);
 
   if (!audio) return null;
 
@@ -118,8 +139,11 @@ const ControlBar: React.FC<ControlBarProps> = ({
                 <Link href='#' className={styles.album}>{currentTrack.author}</Link>
               </div>
               <div className={styles.actions}>
-                <LikeIcon className={styles.likeIcon} />
-                <DisLikeIcon className={styles.disLikeIcon} />
+                {isFavorite ? (
+                  <LikedIcon className={styles.likedIcon} onClick={handleLikeClick} />
+                ) : (
+                  <LikeIcon className={styles.likeIcon} onClick={handleLikeClick} />
+                )}
               </div>
             </div>
           )}

@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './filters.module.css'
 import Popup from '../Popup/Popup';
-import { FiltersProps } from '../../types/types';
+import { FiltersProps } from '../../redux/playlist/types';
 
 
 

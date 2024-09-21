@@ -1,17 +1,19 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import {
-  setCurrentTrack,
-  togglePlayPause,
-  setRepeat,
+'use client'; 
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchTracks } from '../../redux/playlist/asyncActions';
+import { fetchFavoriteTracks } from '../../redux/favorites/asyncActions';
+import { 
+  setCurrentTrack, 
+  togglePlayPause, 
+  nextTrack, 
+  previousTrack, 
+  setRepeat, 
   setShuffle,
-  nextTrack,
-  previousTrack,
-  setActiveFilter,
   setPopups,
-} from '../../redux/playlist/slice';
+  setActiveFilter,
+  setCurrentPlaylist
+} from '../../redux/playlist/slice';  
 import {
   selectCurrentTrack,
   selectCurrentPlaylist,
@@ -23,151 +25,148 @@ import {
   selectActiveFilter,
   selectPopups,
 } from '../../redux/playlist/selectors';
+import { selectFavoriteTracks, selectFavoritesLoading, selectFavoritesError } from '@/redux/favorites/selectors'; 
+import { store } from '@/redux/store';
 import PlayListFilters from '../PlayListFilters/PlayListFilters';
 import TrackList from '../TrackList/TrackList';
 import ControlBar from '../ControlBar/ControlBar';
 import PlayListTitles from '../PlayListTitles/PlayListTitles';
-import { fetchTracks } from '../../redux/playlist/asyncActions';
 import { PopupType, Track } from '../../redux/playlist/types';
-import { store, useAppDispatch } from '@/redux/store';
 import styles from './playlist.module.css';
 
-const PlayList: React.FC = () => {
-  const dispatch = useAppDispatch();
+interface PlayListProps {
+  isFavorites?: boolean;
+}
+
+const PlayList: React.FC<PlayListProps> = ({ isFavorites = false }) => {
+  const dispatch = useDispatch();
   const currentTrack = useSelector(selectCurrentTrack);
-  const currentPlaylist = useSelector(selectCurrentPlaylist);
+  const favoriteTracks: Track[] = useSelector(selectFavoriteTracks);
+  const currentPlaylist: Track[] = useSelector(selectCurrentPlaylist);
   const isPlaying = useSelector(selectIsPlaying);
   const isRepeat = useSelector(selectIsRepeat);
   const isShuffle = useSelector(selectIsShuffle);
   const loading = useSelector(selectLoading);
+  const favoritesLoading = useSelector(selectFavoritesLoading);
   const error = useSelector(selectError);
+  const favoritesError = useSelector(selectFavoritesError);
   const activeFilter = useSelector(selectActiveFilter);
   const popups = useSelector(selectPopups);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    dispatch(fetchTracks());
-  }, [dispatch]);
+    if (isFavorites) {
+      dispatch(fetchFavoriteTracks());
+    } else {
+      dispatch(fetchTracks());
+    }
+  }, [dispatch, isFavorites]);
 
-  const playTrack = (track:Track) => {
+  useEffect(() => {
+    if (isFavorites) {
+      dispatch(setCurrentPlaylist(favoriteTracks));
+    } else {
+      dispatch(setCurrentPlaylist(store.getState().playlist.tracks));
+    }
+  }, [favoriteTracks, isFavorites, dispatch]);
+
+  const uniqueGenres = useMemo(() => 
+    Array.from(new Set(currentPlaylist.map(track => (track.genre || 'Без жанра'))))
+      .map(genre => String(genre).charAt(0).toUpperCase() + String(genre).slice(1).toLowerCase()), 
+    [currentPlaylist]
+  );
+
+  const uniqueAuthors = useMemo(() => 
+    Array.from(new Set(currentPlaylist.map(track => track.author))),
+    [currentPlaylist]
+  );
+
+  const playTrack = useCallback((track: Track) => {
     if (audio) {
       audio.pause();
     }
     const newAudio = new Audio(track.track_file);
     newAudio.play();
     setAudio(newAudio);
-    dispatch(setCurrentTrack(track));
-  };
+    dispatch(setCurrentTrack(track));  
+  }, [audio, dispatch]);
 
-  useEffect(() => {
-    if (audio) {
-      audio.addEventListener('ended', handleTrackEnd);
-      return () => {
-        audio.removeEventListener('ended', handleTrackEnd);
-      };
-    }
-  }, [audio]);
-  
-  const handleTrackEnd = () => {
-    const currentTrackIndex = currentPlaylist.findIndex(track => track._id === currentTrack?._id);
-  
-    if (currentTrackIndex < currentPlaylist.length - 1) {
-      nextTrackHandler();
-    }
-  };
-
-  const togglePlayPauseTrack = () => {
+  const togglePlayPauseTrack = useCallback(() => {
     if (audio) {
       if (isPlaying) {
         audio.pause();
       } else {
         audio.play();
       }
-      dispatch(togglePlayPause());
+      dispatch(togglePlayPause());  
     }
-  };
-  
-  const nextTrackHandler = () => {
-    dispatch(nextTrack());
-  
+  }, [audio, isPlaying, dispatch]);
+
+  const nextTrackHandler = useCallback(() => {
+    dispatch(nextTrack());  
     if (audio) {
       audio.pause();
     }
-  
     const newTrack = store.getState().playlist.currentTrack;
-  
     if (newTrack) {
       const newAudio = new Audio(newTrack.track_file);
-      
       setAudio(newAudio);
-  
-      try {
-        newAudio.play();
-      } catch (err) {
-        console.error("Не удалось воспроизвести трек: ", err);
-      }
+      newAudio.play().catch((err) => console.error("Не удалось воспроизвести трек: ", err));
     }
-  };
-  
-  const previousTrackHandler = () => {
+  }, [audio, dispatch]);
+
+  const previousTrackHandler = useCallback(() => {
     dispatch(previousTrack());  
-
     if (audio) {
       audio.pause();
     }
-
     const newTrack = store.getState().playlist.currentTrack;
-  
     if (newTrack) {
       const newAudio = new Audio(newTrack.track_file);
-      
       setAudio(newAudio);
-      try {
-        newAudio.play();
-      } catch (err) {
-        console.error("Не удалось воспроизвести трек: ", err);
-      }
+      newAudio.play().catch((err) => console.error("Не удалось воспроизвести трек: ", err));
     }
-  };
+  }, [audio, dispatch]);
 
-
-  const handleShowPopup = (type: PopupType) => {
+  const handleShowPopup = useCallback((type: PopupType) => {
     dispatch(setPopups({ type, value: true }));
     dispatch(setActiveFilter(type));
-  };
+  }, [dispatch]);
 
-  const handleClosePopup = (type: PopupType) => {
+  const handleClosePopup = useCallback((type: PopupType) => {
     dispatch(setPopups({ type, value: false }));
     if (activeFilter === type) {
       dispatch(setActiveFilter(null));
     }
-  };
+  }, [activeFilter, dispatch]);
 
-  const getUniqueGenres = () =>
-    Array.from(new Set(currentPlaylist.map(track => (track.genre || 'Без жанра'))))
-      .map(genre => String(genre).charAt(0).toUpperCase() + String(genre).slice(1).toLowerCase());
+  if ((loading && !isFavorites) || (favoritesLoading && isFavorites)) {
+    return <div>Загрузка...</div>;
+  }
 
-  const getUniqueAuthors = () =>
-    Array.from(new Set(currentPlaylist.map(track => track.author)));
+  if (error && !isFavorites) {
+    return <div>{error}</div>;
+  }
 
-  if (loading) return <div>Загрузка...</div>;
-  if (error) return <div>{error}</div>;
+  if (favoritesError && isFavorites) {
+    return <div>{favoritesError}</div>;
+  }
 
   return (
     <div className={styles.playlist}>
-      <h2 className={styles.title}>Треки</h2>
+      <h2 className={styles.title}>{isFavorites ? 'Мои треки' : 'Треки'}</h2>
       <PlayListFilters
         activeFilter={activeFilter}
         popups={popups}
-        getUniqueAuthors={getUniqueAuthors()}
-        getUniqueGenres={getUniqueGenres()}
+        getUniqueAuthors={uniqueAuthors}
+        getUniqueGenres={uniqueGenres}
         handleShowPopup={handleShowPopup}
         handleClosePopup={handleClosePopup}
       />
       <div className={styles.playlistContent}>
         <PlayListTitles />
         <TrackList 
-          tracks={currentPlaylist}
+          tracks={currentPlaylist}  
           onPlayTrack={playTrack} 
           currentTrackId={currentTrack?._id || null}
           isPlaying={isPlaying} 

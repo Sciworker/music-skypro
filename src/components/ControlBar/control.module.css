@@ -98,7 +98,10 @@
     color: #acacac;  
     
 }
-
+.likedIcon {
+    cursor: pointer;
+    color: #B672FF;
+}
 .activeShuffleIcon {
     color: #ffffff;  
     

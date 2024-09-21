@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import styles from './popup.module.css';
-import { PopupProps } from '../../types/types';
+import { PopupProps } from '../../redux/playlist/types';
 
 
 const Popup: React.FC<PopupProps> = ({ content, onClose }) => {

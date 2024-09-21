@@ -105,8 +105,14 @@
     color: #313131;
 }
 
+.likedIcon {
+    color: #B672FF;
+    cursor: pointer;
+}
+
 .likeIcon {
     color: #181818;
+    cursor: pointer;
 }
 
 .trackTitle.activeTrack {

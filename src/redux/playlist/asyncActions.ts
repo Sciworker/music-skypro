@@ -8,9 +8,11 @@ export const fetchTracks = createAsyncThunk<Track[], void>(
     try {
       const { data } = await axios.get('https://webdev-music-003b5b991590.herokuapp.com/catalog/track/all/');
       return data.data || [];
+      console.log(data)
     } catch (err) {
       console.error('Ошибка при загрузке данных', err);
       return rejectWithValue('Ошибка при загрузке данных');
     }
   }
 );
+
