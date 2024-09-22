@@ -1,128 +1,194 @@
-import React from 'react'
-import styles from './playlist.module.css'
-import NoteIcon from '../../../public/icon/note.svg';
-import LikeIcon from '../../../public/icon/like-track.svg';
-import ClickIcon from '../../../public/icon/watch.svg';
-import Link from 'next/link';
+'use client'; 
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '@/redux/store';
+import { fetchTracks } from '../../redux/playlist/asyncActions';
+import { fetchFavoriteTracks } from '../../redux/favorites/asyncActions';
+import { 
+  setCurrentTrack, 
+  togglePlayPause, 
+  nextTrack, 
+  previousTrack, 
+  setRepeat, 
+  setShuffle,
+  setPopups,
+  setActiveFilter,
+  setCurrentPlaylist
+} from '../../redux/playlist/slice';  
+import {
+  selectCurrentTrack,
+  selectCurrentPlaylist,
+  selectIsPlaying,
+  selectIsRepeat,
+  selectIsShuffle,
+  selectLoading,
+  selectError,
+  selectActiveFilter,
+  selectPopups,
+} from '../../redux/playlist/selectors';
+import { selectFavoriteTracks, selectFavoritesLoading, selectFavoritesError } from '@/redux/favorites/selectors'; 
+import { store } from '@/redux/store';
+import PlayListFilters from '../PlayListFilters/PlayListFilters';
+import TrackList from '../TrackList/TrackList';
+import ControlBar from '../ControlBar/ControlBar';
+import PlayListTitles from '../PlayListTitles/PlayListTitles';
+import { PopupType, Track } from '../../redux/playlist/types';
+import styles from './playlist.module.css';
 
-const PlayList = () => {
-  return (
-    <div className={styles.playlist}>
-      <h2 className={styles.title}>
-        Треки
-      </h2>
-      <div className={styles.filter}>
-        <div className={styles.searchBy}>Искать по:</div>
-        <div className={styles.filters}>
-            <div className={styles.item}>
-                исполнителю
-            </div>
-            <div className={styles.item}>
-                году выпуска
-            </div>
-            <div className={styles.item}>
-                жанру
-            </div>
-        </div>
-      </div>
-      <div className={styles.playlistContent}>
-        <div className={styles.playlistTitles}>
-            <div className={styles.track}>
-                Трек
-            </div>
-            <div className={styles.performer}>
-                Исполнитель
-            </div>
-            <div className={styles.album}>
-                Альбом
-            </div>
-            <div className={styles.duration}>
-                <ClickIcon className={styles.likeIcon}/>
-            </div>
-        </div>
-        <div className={styles.trackList}>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div> Guilt</Link>
-                <Link href='#' className={styles.trackAuthor}>Nero</Link>
-                <Link href='#' className={styles.trackAlbum}>Welcome Reality</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/> 4:44</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div> Elektro</Link>
-                <Link href='#' className={styles.trackAuthor}>Dynoro, Outwork, Mr. Gee</Link>
-                <Link href='#' className={styles.trackAlbum}>Elektro</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>2:22</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>I’m Fire</Link>
-                <Link href='#' className={styles.trackAuthor}>Ali Bakgor</Link>
-                <Link href='' className={styles.trackAlbum}>I’m Fire</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>2:22</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Non Stop (Remix)</Link>
-                <Link href='#' className={styles.trackAuthor}>Стоункат, Psychopath</Link>
-                <Link href='#'  className={styles.trackAlbum}>Non Stop</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>4:12</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Run Run (feat. AR/CO)</Link>
-                <Link href='#' className={styles.trackAuthor}>Jaded, Will Clarke, AR/CO</Link>
-                <Link href='#'  className={styles.trackAlbum}>Run Run</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>2:54</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Eyes on Fire (Zeds Dead Remix)</Link>
-                <Link href='#' className={styles.trackAuthor}>Blue Foundation, Zeds Dead</Link>
-                <Link href='#'  className={styles.trackAlbum}>Eyes on Fire</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>5:20</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Mucho Bien (Hi Profile Remix)</Link>
-                <Link href='#' className={styles.trackAuthor}>HYBIT, Mr. Black, Offer Nissim, Hi Profile</Link>
-                <Link href='#'  className={styles.trackAlbum}>Mucho Bien</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>3:41</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Knives n Cherries</Link>
-                <Link href='#' className={styles.trackAuthor}>minthaze</Link>
-                <Link href='#'  className={styles.trackAlbum}>Captivating</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>1:48</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Knives n Cherries</Link>
-                <Link href='#' className={styles.trackAuthor}>minthaze</Link>
-                <Link href='#'  className={styles.trackAlbum}>Captivating</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>1:48</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Knives n Cherries</Link>
-                <Link href='#' className={styles.trackAuthor}>minthaze</Link>
-                <Link href='#'  className={styles.trackAlbum}>Captivating</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>1:48</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Knives n Cherries</Link>
-                <Link href='#' className={styles.trackAuthor}>minthaze</Link>
-                <Link href='#'  className={styles.trackAlbum}>Captivating</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>1:48</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Knives n Cherries</Link>
-                <Link href='#' className={styles.trackAuthor}>minthaze</Link>
-                <Link href='#'  className={styles.trackAlbum}>Captivating</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>1:48</div>
-            </div>
-            <div className={styles.trackItem}>
-                <Link href='#' className={styles.trackTitle}><div className={styles.image}><NoteIcon className={styles.note}/></div>Knives n Cherries</Link>
-                <Link href='#' className={styles.trackAuthor}>minthaze</Link>
-                <Link href='#'  className={styles.trackAlbum}>Captivating</Link>
-                <div className={styles.trackTime}><LikeIcon className={styles.likeIcon}/>1:48</div>
-            </div>
-        </div>
-      </div>
-    </div>
-  )
+interface PlayListProps {
+  isFavorites?: boolean;
 }
 
-export default PlayList
+const PlayList: React.FC<PlayListProps> = ({ isFavorites = false }) => {
+  const dispatch = useAppDispatch();
+  const currentTrack = useSelector(selectCurrentTrack);
+  const favoriteTracks: Track[] = useSelector(selectFavoriteTracks);
+  const currentPlaylist: Track[] = useSelector(selectCurrentPlaylist);
+  const isPlaying = useSelector(selectIsPlaying);
+  const isRepeat = useSelector(selectIsRepeat);
+  const isShuffle = useSelector(selectIsShuffle);
+  const loading = useSelector(selectLoading);
+  const favoritesLoading = useSelector(selectFavoritesLoading);
+  const error = useSelector(selectError);
+  const favoritesError = useSelector(selectFavoritesError);
+  const activeFilter = useSelector(selectActiveFilter);
+  const popups = useSelector(selectPopups);
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (isFavorites) {
+      dispatch(fetchFavoriteTracks());
+    } else {
+      dispatch(fetchTracks());
+    }
+  }, [dispatch, isFavorites]);
+
+  useEffect(() => {
+    if (isFavorites) {
+      dispatch(setCurrentPlaylist(favoriteTracks));
+    } else {
+      dispatch(setCurrentPlaylist(store.getState().playlist.tracks));
+    }
+  }, [favoriteTracks, isFavorites, dispatch]);
+
+  const uniqueGenres = useMemo(() => 
+    Array.from(new Set(currentPlaylist.map(track => (track.genre || 'Без жанра'))))
+      .map(genre => String(genre).charAt(0).toUpperCase() + String(genre).slice(1).toLowerCase()), 
+    [currentPlaylist]
+  );
+
+  const uniqueAuthors = useMemo(() => 
+    Array.from(new Set(currentPlaylist.map(track => track.author))),
+    [currentPlaylist]
+  );
+
+  const playTrack = useCallback((track: Track) => {
+    if (audio) {
+      audio.pause();
+    }
+    const newAudio = new Audio(track.track_file);
+    newAudio.play();
+    setAudio(newAudio);
+    dispatch(setCurrentTrack(track));  
+  }, [audio, dispatch]);
+
+  const togglePlayPauseTrack = useCallback(() => {
+    if (audio) {
+      if (isPlaying) {
+        audio.pause();
+      } else {
+        audio.play();
+      }
+      dispatch(togglePlayPause());  
+    }
+  }, [audio, isPlaying, dispatch]);
+
+  const nextTrackHandler = useCallback(() => {
+    dispatch(nextTrack());  
+    if (audio) {
+      audio.pause();
+    }
+    const newTrack = store.getState().playlist.currentTrack;
+    if (newTrack) {
+      const newAudio = new Audio(newTrack.track_file);
+      setAudio(newAudio);
+      newAudio.play().catch((err) => console.error("Не удалось воспроизвести трек: ", err));
+    }
+  }, [audio, dispatch]);
+
+  const previousTrackHandler = useCallback(() => {
+    dispatch(previousTrack());  
+    if (audio) {
+      audio.pause();
+    }
+    const newTrack = store.getState().playlist.currentTrack;
+    if (newTrack) {
+      const newAudio = new Audio(newTrack.track_file);
+      setAudio(newAudio);
+      newAudio.play().catch((err) => console.error("Не удалось воспроизвести трек: ", err));
+    }
+  }, [audio, dispatch]);
+
+  const handleShowPopup = useCallback((type: PopupType) => {
+    dispatch(setPopups({ type, value: true }));
+    dispatch(setActiveFilter(type));
+  }, [dispatch]);
+
+  const handleClosePopup = useCallback((type: PopupType) => {
+    dispatch(setPopups({ type, value: false }));
+    if (activeFilter === type) {
+      dispatch(setActiveFilter(null));
+    }
+  }, [activeFilter, dispatch]);
+
+  if ((loading && !isFavorites) || (favoritesLoading && isFavorites)) {
+    return <div>Загрузка...</div>;
+  }
+
+  if (error && !isFavorites) {
+    return <div>{error}</div>;
+  }
+
+  if (favoritesError && isFavorites) {
+    return <div>{favoritesError}</div>;
+  }
+
+  return (
+    <div className={styles.playlist}>
+      <h2 className={styles.title}>{isFavorites ? 'Мои треки' : 'Треки'}</h2>
+      <PlayListFilters
+        activeFilter={activeFilter}
+        popups={popups}
+        getUniqueAuthors={uniqueAuthors}
+        getUniqueGenres={uniqueGenres}
+        handleShowPopup={handleShowPopup}
+        handleClosePopup={handleClosePopup}
+      />
+      <div className={styles.playlistContent}>
+        <PlayListTitles />
+        <TrackList 
+          tracks={currentPlaylist}  
+          onPlayTrack={playTrack} 
+          currentTrackId={currentTrack?._id || null}
+          isPlaying={isPlaying} 
+        />
+      </div>
+      <ControlBar
+        currentTrack={currentTrack}
+        audio={audio}
+        onPlayPause={togglePlayPauseTrack}
+        onShuffle={() => dispatch(setShuffle(!isShuffle))}
+        onNextTrack={nextTrackHandler}
+        onPreviousTrack={previousTrackHandler}
+        isRepeat={isRepeat}
+        isShuffle={isShuffle}
+        onToggleRepeat={() => dispatch(setRepeat(!isRepeat))}
+        onToggleShuffle={() => dispatch(setShuffle(!isShuffle))}
+        currentTime={audio?.currentTime || 0}
+        totalTime={currentTrack?.duration_in_seconds || 0}
+      />
+    </div>
+  );
+};
+
+export default PlayList;

@@ -2,12 +2,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import styles from "./page.module.css";
+import styles from "../page.module.css";
 import Navbar from "@/components/Navbar/Navbar";
 import MainBlock from "@/components/MainBlock/MainBlock";
 import Sidebar from "@/components/Sidebar/Sidebar";
-import { RootState } from '../redux/store';
-import { initializeAuth } from '../redux/auth/slice';
+import { RootState } from '../../redux/store';
+import { initializeAuth } from '../../redux/auth/slice';
 
 export default function Page() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function Page() {
   return (
     <main className={styles.main}>
       <Navbar />
-      <MainBlock />
+      <MainBlock isFavorites={true} />
       <Sidebar />
     </main>
   );
