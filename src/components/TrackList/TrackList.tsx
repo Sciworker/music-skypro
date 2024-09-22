@@ -6,13 +6,14 @@ import LikedIcon from '../../../public/icon/liked.svg';
 import Link from 'next/link';
 import { changeDurationFormat } from '@/utils/changeDurationFormat';
 import { TrackListProps, Track } from '../../redux/playlist/types';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '@/redux/store';
 import { addTrackToFavorites, removeTrackFromFavorites } from '@/redux/favorites/asyncActions';
 import { selectFavoriteTracks } from '@/redux/favorites/selectors';
 import { toast } from 'react-hot-toast';
 
 const TrackList: React.FC<TrackListProps> = ({ tracks, onPlayTrack, currentTrackId, isPlaying }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const favoriteTracks = useSelector(selectFavoriteTracks);
 
   const isFavorite = (trackId: number) => {

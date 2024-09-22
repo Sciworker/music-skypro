@@ -14,13 +14,18 @@ const initialState: FavoritesState = {
   error: null,
 };
 
-const saveFavoritesToStorage = (favorites: Track[]) => {
-  localStorage.setItem('favoriteTracks', JSON.stringify(favorites));
+const loadFavoritesFromStorage = (): Track[] => {
+  if (typeof window !== 'undefined') {
+    const savedFavorites = localStorage.getItem('favoriteTracks');
+    return savedFavorites ? JSON.parse(savedFavorites) : [];
+  }
+  return [];
 };
 
-const loadFavoritesFromStorage = (): Track[] => {
-  const savedFavorites = localStorage.getItem('favoriteTracks');
-  return savedFavorites ? JSON.parse(savedFavorites) : [];
+const saveFavoritesToStorage = (favorites: Track[]) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('favoriteTracks', JSON.stringify(favorites));
+  }
 };
 
 const favoritesSlice = createSlice({

@@ -15,7 +15,8 @@ import NoteIcon from '../../../public/icon/note.svg';
 import Link from 'next/link';
 import { changeDurationFormat } from '@/utils/changeDurationFormat';
 import { ControlBarProps } from '../../redux/playlist/types';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '@/redux/store';
 import { addTrackToFavorites, removeTrackFromFavorites } from '@/redux/favorites/asyncActions';
 import { selectFavoriteTracks } from '@/redux/favorites/selectors';
 import { toast } from 'react-hot-toast';
@@ -32,7 +33,7 @@ const ControlBar: React.FC<ControlBarProps> = ({
   onToggleShuffle,
   totalTime
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const favoriteTracks = useSelector(selectFavoriteTracks);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(0.5);

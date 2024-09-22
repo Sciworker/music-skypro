@@ -1,6 +1,7 @@
 'use client'; 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '@/redux/store';
 import { fetchTracks } from '../../redux/playlist/asyncActions';
 import { fetchFavoriteTracks } from '../../redux/favorites/asyncActions';
 import { 
@@ -39,7 +40,7 @@ interface PlayListProps {
 }
 
 const PlayList: React.FC<PlayListProps> = ({ isFavorites = false }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const currentTrack = useSelector(selectCurrentTrack);
   const favoriteTracks: Track[] = useSelector(selectFavoriteTracks);
   const currentPlaylist: Track[] = useSelector(selectCurrentPlaylist);
