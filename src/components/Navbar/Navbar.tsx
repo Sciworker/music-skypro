@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useState } from 'react';
 import styles from './navbar.module.css';
 import Link from 'next/link';
@@ -14,10 +12,15 @@ const Navbar = () => {
 
   return (
     <div className={styles.navbar}>
-      <Link href='/' className={styles.logo}>
-        <Image width={113} height={17} src='/logo.png' alt='logo'></Image>
+      <Link href="/" className={styles.logo}>
+        <Image width={113} height={17} src="/logo.png" alt="logo" />
       </Link>
-      <div className={styles.burger} onClick={toggleMenu}>
+      <div
+        className={styles.burger}
+        onClick={toggleMenu}
+        role="button"
+        aria-label="Toggle menu"
+      >
         <span className={styles.burgerLine}></span>
         <span className={styles.burgerLine}></span>
         <span className={styles.burgerLine}></span>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import styles from './filters.module.css'
 import Popup from '../Popup/Popup';
 import { FiltersProps } from '../../redux/playlist/types';
@@ -47,4 +47,4 @@ const PlayListFilters: React.FC<FiltersProps> = ({
   </div>
 );
 
-export default PlayListFilters;
+export default memo (PlayListFilters);

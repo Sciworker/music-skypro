@@ -1,7 +1,8 @@
-'use client'; 
+'use client';
+
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { useAppDispatch } from '@/redux/store';
+import { useAppDispatch, store } from '@/redux/store';
 import { fetchTracks } from '../../redux/playlist/asyncActions';
 import { fetchFavoriteTracks } from '../../redux/favorites/asyncActions';
 import { 
@@ -12,38 +13,36 @@ import {
   setRepeat, 
   setShuffle,
   setPopups,
-  setActiveFilter,
-  setCurrentPlaylist
+  setActiveFilter
 } from '../../redux/playlist/slice';  
 import {
   selectCurrentTrack,
-  selectCurrentPlaylist,
   selectIsPlaying,
   selectIsRepeat,
   selectIsShuffle,
   selectLoading,
   selectError,
   selectActiveFilter,
-  selectPopups,
+  selectPopups
 } from '../../redux/playlist/selectors';
 import { selectFavoriteTracks, selectFavoritesLoading, selectFavoritesError } from '@/redux/favorites/selectors'; 
-import { store } from '@/redux/store';
 import PlayListFilters from '../PlayListFilters/PlayListFilters';
 import TrackList from '../TrackList/TrackList';
 import ControlBar from '../ControlBar/ControlBar';
 import PlayListTitles from '../PlayListTitles/PlayListTitles';
 import { PopupType, Track } from '../../redux/playlist/types';
 import styles from './playlist.module.css';
+import { useAudio } from '../AudioContext/AudioContext';
 
 interface PlayListProps {
   isFavorites?: boolean;
+  selection?: { name: string; items: number[] };
 }
 
-const PlayList: React.FC<PlayListProps> = ({ isFavorites = false }) => {
+const MainPlayList: React.FC<PlayListProps> = ({ isFavorites = false, selection }) => {
   const dispatch = useAppDispatch();
   const currentTrack = useSelector(selectCurrentTrack);
   const favoriteTracks: Track[] = useSelector(selectFavoriteTracks);
-  const currentPlaylist: Track[] = useSelector(selectCurrentPlaylist);
   const isPlaying = useSelector(selectIsPlaying);
   const isRepeat = useSelector(selectIsRepeat);
   const isShuffle = useSelector(selectIsShuffle);
@@ -53,33 +52,53 @@ const PlayList: React.FC<PlayListProps> = ({ isFavorites = false }) => {
   const favoritesError = useSelector(selectFavoritesError);
   const activeFilter = useSelector(selectActiveFilter);
   const popups = useSelector(selectPopups);
-  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+
+  const { audio, setAudio } = useAudio();
+
+  const [allTracks, setAllTracks] = useState<Track[]>([]);
+  const [filteredTracks, setFilteredTracks] = useState<Track[]>([]);
+  const [hasFetchedFavorites, setHasFetchedFavorites] = useState(false);
 
   useEffect(() => {
-    if (isFavorites) {
-      dispatch(fetchFavoriteTracks());
-    } else {
-      dispatch(fetchTracks());
+    const loadTracks = async () => {
+      const result = await dispatch(fetchTracks());
+
+      if (result.payload && Array.isArray(result.payload)) {
+        setAllTracks(result.payload);
+        setFilteredTracks(result.payload);
+      }
+    };
+
+    if (!isFavorites && !selection) {
+      loadTracks();
     }
-  }, [dispatch, isFavorites]);
+  }, [dispatch, isFavorites, selection]);
 
   useEffect(() => {
-    if (isFavorites) {
-      dispatch(setCurrentPlaylist(favoriteTracks));
-    } else {
-      dispatch(setCurrentPlaylist(store.getState().playlist.tracks));
+    if (isFavorites && favoriteTracks.length === 0 && !favoritesLoading && !hasFetchedFavorites) {
+      dispatch(fetchFavoriteTracks()).then((response) => {
+        if (response.payload && Array.isArray(response.payload)) {
+          setFilteredTracks(response.payload);
+        }
+        setHasFetchedFavorites(true);
+      });
+    } else if (selection) {
+      const selectedTracks = allTracks.filter((track: Track) =>
+        selection.items.includes(track._id)
+      );
+      setFilteredTracks(selectedTracks);
     }
-  }, [favoriteTracks, isFavorites, dispatch]);
+  }, [allTracks, favoriteTracks.length, selection, isFavorites, dispatch, favoritesLoading, hasFetchedFavorites]);
 
   const uniqueGenres = useMemo(() => 
-    Array.from(new Set(currentPlaylist.map(track => (track.genre || 'Без жанра'))))
+    Array.from(new Set(filteredTracks.map(track => (track.genre || 'Без жанра'))))
       .map(genre => String(genre).charAt(0).toUpperCase() + String(genre).slice(1).toLowerCase()), 
-    [currentPlaylist]
+    [filteredTracks]
   );
 
   const uniqueAuthors = useMemo(() => 
-    Array.from(new Set(currentPlaylist.map(track => track.author))),
-    [currentPlaylist]
+    Array.from(new Set(filteredTracks.map(track => track.author))),
+    [filteredTracks]
   );
 
   const playTrack = useCallback((track: Track) => {
@@ -90,7 +109,7 @@ const PlayList: React.FC<PlayListProps> = ({ isFavorites = false }) => {
     newAudio.play();
     setAudio(newAudio);
     dispatch(setCurrentTrack(track));  
-  }, [audio, dispatch]);
+  }, [audio, setAudio, dispatch]);
 
   const togglePlayPauseTrack = useCallback(() => {
     if (audio) {
@@ -114,7 +133,7 @@ const PlayList: React.FC<PlayListProps> = ({ isFavorites = false }) => {
       setAudio(newAudio);
       newAudio.play().catch((err) => console.error("Не удалось воспроизвести трек: ", err));
     }
-  }, [audio, dispatch]);
+  }, [audio, setAudio, dispatch]);
 
   const previousTrackHandler = useCallback(() => {
     dispatch(previousTrack());  
@@ -127,7 +146,7 @@ const PlayList: React.FC<PlayListProps> = ({ isFavorites = false }) => {
       setAudio(newAudio);
       newAudio.play().catch((err) => console.error("Не удалось воспроизвести трек: ", err));
     }
-  }, [audio, dispatch]);
+  }, [audio, setAudio, dispatch]);
 
   const handleShowPopup = useCallback((type: PopupType) => {
     dispatch(setPopups({ type, value: true }));
@@ -155,7 +174,9 @@ const PlayList: React.FC<PlayListProps> = ({ isFavorites = false }) => {
 
   return (
     <div className={styles.playlist}>
-      <h2 className={styles.title}>{isFavorites ? 'Мои треки' : 'Треки'}</h2>
+      <h2 className={styles.title}>
+        {isFavorites ? 'Мои треки' : selection ? selection.name : 'Все треки'}
+      </h2>
       <PlayListFilters
         activeFilter={activeFilter}
         popups={popups}
@@ -167,7 +188,7 @@ const PlayList: React.FC<PlayListProps> = ({ isFavorites = false }) => {
       <div className={styles.playlistContent}>
         <PlayListTitles />
         <TrackList 
-          tracks={currentPlaylist}  
+          tracks={filteredTracks.length > 0 ? filteredTracks : favoriteTracks} 
           onPlayTrack={playTrack} 
           currentTrackId={currentTrack?._id || null}
           isPlaying={isPlaying} 
@@ -191,4 +212,4 @@ const PlayList: React.FC<PlayListProps> = ({ isFavorites = false }) => {
   );
 };
 
-export default PlayList;
+export default MainPlayList;

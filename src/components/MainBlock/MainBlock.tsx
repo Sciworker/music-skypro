@@ -1,19 +1,21 @@
 import React from 'react';
 import styles from './main.module.css';
 import SearchBar from '../SearchBar/SearchBar';
-import PlayList from '../PlayList/PlayList';
+import MainPlayList from '../MainPlayList/MainPlayList';
 
 interface MainBlockProps {
   isFavorites?: boolean;
+  selection?: any;
 }
 
-const MainBlock: React.FC<MainBlockProps> = ({ isFavorites = false }) => {
+const MainBlock: React.FC<MainBlockProps> = ({ isFavorites = false, selection }) => {
   return (
     <div className={styles.main}>
       <SearchBar />
-      <PlayList isFavorites={isFavorites} /> 
+      <MainPlayList isFavorites={isFavorites} selection={selection} />
     </div>
   );
 };
 
 export default MainBlock;
+

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, memo } from 'react';
 import styles from './control.module.css';
 import PrevIcon from '../../../public/icon/prev.svg';
 import PlayIcon from '../../../public/icon/play.svg';
@@ -20,10 +20,10 @@ import { useAppDispatch } from '@/redux/store';
 import { addTrackToFavorites, removeTrackFromFavorites } from '@/redux/favorites/asyncActions';
 import { selectFavoriteTracks } from '@/redux/favorites/selectors';
 import { toast } from 'react-hot-toast';
+import { useAudio } from '../AudioContext/AudioContext'; 
 
 const ControlBar: React.FC<ControlBarProps> = ({
   currentTrack,
-  audio,
   onPlayPause,
   onNextTrack,
   onPreviousTrack,
@@ -31,13 +31,15 @@ const ControlBar: React.FC<ControlBarProps> = ({
   isShuffle,
   onToggleRepeat,
   onToggleShuffle,
-  totalTime
+  totalTime,
 }) => {
   const dispatch = useAppDispatch();
   const favoriteTracks = useSelector(selectFavoriteTracks);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(0.5);
   const [currentTime, setCurrentTime] = useState(0);
+
+  const { audio, setAudio } = useAudio();
 
   useEffect(() => {
     if (audio) {
@@ -166,4 +168,4 @@ const ControlBar: React.FC<ControlBarProps> = ({
   );
 };
 
-export default ControlBar;
+export default memo(ControlBar);

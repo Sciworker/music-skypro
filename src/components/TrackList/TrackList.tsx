@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import styles from './tracklist.module.css';
 import NoteIcon from '../../../public/icon/note.svg';
 import LikeIcon from '../../../public/icon/like-track.svg';
@@ -76,4 +76,4 @@ const TrackList: React.FC<TrackListProps> = ({ tracks, onPlayTrack, currentTrack
   );
 };
 
-export default TrackList;
+export default memo(TrackList);
