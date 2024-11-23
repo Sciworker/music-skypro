@@ -42,7 +42,7 @@ export default function Page() {
 
 
   if (loading || !isLoggedIn) {
-    return <p>Загрузка...</p>;
+    return '';
   }
 
   return (

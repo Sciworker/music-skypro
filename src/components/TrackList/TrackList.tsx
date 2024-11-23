@@ -1,4 +1,6 @@
 import React, { memo } from 'react';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 import styles from './tracklist.module.css';
 import NoteIcon from '../../../public/icon/note.svg';
 import LikeIcon from '../../../public/icon/like-track.svg';
@@ -8,6 +10,7 @@ import { changeDurationFormat } from '@/utils/changeDurationFormat';
 import { TrackListProps, Track } from '../../redux/playlist/types';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from '@/redux/store';
+import { selectSelectionsLoading } from '@/redux/selections/selectors';
 import { addTrackToFavorites, removeTrackFromFavorites } from '@/redux/favorites/asyncActions';
 import { selectFavoriteTracks } from '@/redux/favorites/selectors';
 import { toast } from 'react-hot-toast';
@@ -15,6 +18,7 @@ import { toast } from 'react-hot-toast';
 const TrackList: React.FC<TrackListProps> = ({ tracks, onPlayTrack, currentTrackId, isPlaying }) => {
   const dispatch = useAppDispatch();
   const favoriteTracks = useSelector(selectFavoriteTracks);
+  const selectionLoading = useSelector(selectSelectionsLoading);
 
   const isFavorite = (trackId: number) => {
     return favoriteTracks && Array.isArray(favoriteTracks) && favoriteTracks.some((track) => track._id === trackId);
@@ -30,48 +34,52 @@ const TrackList: React.FC<TrackListProps> = ({ tracks, onPlayTrack, currentTrack
     }
   };
 
-  if (!Array.isArray(tracks) || tracks.length === 0) {
-    return <div>Нет доступных треков</div>;
-  }
-
   return (
     <div className={styles.trackList}>
-      {tracks.map((track: Track) => (
-        <div key={track._id} className={styles.trackItem}>
-          <Link
-            href='#'
-            passHref
-            className={`${styles.trackTitle} ${track._id === currentTrackId ? styles.activeTrack : ''}`}
-            onClick={(e) => {
-              e.preventDefault();
-              onPlayTrack(track);
-            }}
-          >
-            <div className={styles.image}>
-              {track._id === currentTrackId ? (
-                isPlaying ? (
-                  <div className={styles.circle}></div>
+      {tracks.length > 0 ? (
+        tracks.map((track: Track) => (
+          <div key={track._id} className={styles.trackItem}>
+            <Link
+              href="#"
+              passHref
+              className={`${styles.trackTitle} ${track._id === currentTrackId ? styles.activeTrack : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                onPlayTrack(track);
+              }}
+            >
+              <div className={styles.image}>
+                {track._id === currentTrackId ? (
+                  isPlaying ? (
+                    <div className={styles.circle}></div>
+                  ) : (
+                    <div className={styles.circleStatic}></div>
+                  )
                 ) : (
-                  <div className={styles.circleStatic}></div>
-                )
+                  <NoteIcon className={styles.note} />
+                )}
+              </div>
+              {track.name}
+            </Link>
+            <Link href="#" passHref className={styles.trackAuthor}>
+              {track.author}
+            </Link>
+            <Link href="#" passHref className={styles.trackAlbum}>
+              {track.album}
+            </Link>
+            <div className={styles.trackTime}>
+              {isFavorite(track._id) ? (
+                <LikedIcon className={styles.likedIcon} onClick={() => handleLikeClick(track)} />
               ) : (
-                <NoteIcon className={styles.note} />
+                <LikeIcon className={styles.likeIcon} onClick={() => handleLikeClick(track)} />
               )}
+              {changeDurationFormat(track.duration_in_seconds ?? 0)}
             </div>
-            {track.name}
-          </Link>
-          <Link href='#' passHref className={styles.trackAuthor}>{track.author}</Link>
-          <Link href='#' passHref className={styles.trackAlbum}>{track.album}</Link>
-          <div className={styles.trackTime}>
-            {isFavorite(track._id) ? (
-              <LikedIcon className={styles.likedIcon} onClick={() => handleLikeClick(track)} />
-            ) : (
-              <LikeIcon className={styles.likeIcon} onClick={() => handleLikeClick(track)} />
-            )}
-            {changeDurationFormat(track.duration_in_seconds ?? 0)}
           </div>
-        </div>
-      ))}
+        ))
+      ) : (
+        <div className={styles.noTracksMessage}>Треки не найдены</div>
+      )}
     </div>
   );
 };

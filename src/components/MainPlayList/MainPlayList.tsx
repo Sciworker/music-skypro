@@ -1,20 +1,18 @@
 'use client';
-
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useAppDispatch, store } from '@/redux/store';
 import { fetchTracks } from '../../redux/playlist/asyncActions';
 import { fetchFavoriteTracks } from '../../redux/favorites/asyncActions';
-import { 
-  setCurrentTrack, 
-  togglePlayPause, 
-  nextTrack, 
-  previousTrack, 
-  setRepeat, 
+import {
+  setCurrentTrack,
+  togglePlayPause,
+  nextTrack,
+  previousTrack,
+  setRepeat,
   setShuffle,
   setPopups,
-  setActiveFilter
-} from '../../redux/playlist/slice';  
+} from '../../redux/playlist/slice';
 import {
   selectCurrentTrack,
   selectIsPlaying,
@@ -22,10 +20,9 @@ import {
   selectIsShuffle,
   selectLoading,
   selectError,
-  selectActiveFilter,
-  selectPopups
+  selectPopups,
 } from '../../redux/playlist/selectors';
-import { selectFavoriteTracks, selectFavoritesLoading, selectFavoritesError } from '@/redux/favorites/selectors'; 
+import { selectFavoriteTracks, selectFavoritesLoading, selectFavoritesError } from '@/redux/favorites/selectors';
 import PlayListFilters from '../PlayListFilters/PlayListFilters';
 import TrackList from '../TrackList/TrackList';
 import ControlBar from '../ControlBar/ControlBar';
@@ -33,16 +30,19 @@ import PlayListTitles from '../PlayListTitles/PlayListTitles';
 import { PopupType, Track } from '../../redux/playlist/types';
 import styles from './playlist.module.css';
 import { useAudio } from '../AudioContext/AudioContext';
+import { useDebounce } from '../../hooks/useDebounce';
+import Skeleton from 'react-loading-skeleton';
 
 interface PlayListProps {
   isFavorites?: boolean;
   selection?: { name: string; items: number[] };
+  searchTerm: string;
 }
 
-const MainPlayList: React.FC<PlayListProps> = ({ isFavorites = false, selection }) => {
+const MainPlayList: React.FC<PlayListProps> = ({ isFavorites = false, selection, searchTerm }) => {
   const dispatch = useAppDispatch();
   const currentTrack = useSelector(selectCurrentTrack);
-  const favoriteTracks: Track[] = useSelector(selectFavoriteTracks);
+  const favoriteTracks = useSelector(selectFavoriteTracks);
   const isPlaying = useSelector(selectIsPlaying);
   const isRepeat = useSelector(selectIsRepeat);
   const isShuffle = useSelector(selectIsShuffle);
@@ -50,7 +50,6 @@ const MainPlayList: React.FC<PlayListProps> = ({ isFavorites = false, selection 
   const favoritesLoading = useSelector(selectFavoritesLoading);
   const error = useSelector(selectError);
   const favoritesError = useSelector(selectFavoritesError);
-  const activeFilter = useSelector(selectActiveFilter);
   const popups = useSelector(selectPopups);
 
   const { audio, setAudio } = useAudio();
@@ -58,111 +57,148 @@ const MainPlayList: React.FC<PlayListProps> = ({ isFavorites = false, selection 
   const [allTracks, setAllTracks] = useState<Track[]>([]);
   const [filteredTracks, setFilteredTracks] = useState<Track[]>([]);
   const [hasFetchedFavorites, setHasFetchedFavorites] = useState(false);
+  const [activeGenres, setActiveGenres] = useState<string[]>([]);
+  const [activeAuthors, setActiveAuthors] = useState<string[]>([]);
+  const [sortOrder, setSortOrder] = useState<'new' | 'old' | null>(null);
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  const isLoading = useMemo(() => (isFavorites ? favoritesLoading : loading), [
+    favoritesLoading,
+    loading,
+    isFavorites,
+  ]);
+  
 
   useEffect(() => {
-    const loadTracks = async () => {
-      const result = await dispatch(fetchTracks());
-
-      if (result.payload && Array.isArray(result.payload)) {
-        setAllTracks(result.payload);
-        setFilteredTracks(result.payload);
-      }
-    };
-
-    if (!isFavorites && !selection) {
-      loadTracks();
+    if (!isFavorites && !selection && allTracks.length === 0) {
+      dispatch(fetchTracks()).then((result: any) => {
+        if (result.payload && Array.isArray(result.payload)) {
+          const newTracks = result.payload;
+          if (JSON.stringify(allTracks) !== JSON.stringify(newTracks)) {
+            setAllTracks(newTracks);
+            setFilteredTracks(newTracks);
+          }
+        }
+      });
     }
-  }, [dispatch, isFavorites, selection]);
+  }, [dispatch, isFavorites, selection, allTracks.length]);
 
   useEffect(() => {
-    if (isFavorites && favoriteTracks.length === 0 && !favoritesLoading && !hasFetchedFavorites) {
-      dispatch(fetchFavoriteTracks()).then((response) => {
+    if (isFavorites && !favoritesLoading && !hasFetchedFavorites) {
+      dispatch(fetchFavoriteTracks()).then((response: any) => {
         if (response.payload && Array.isArray(response.payload)) {
-          setFilteredTracks(response.payload);
+          const newTracks = response.payload;
+          if (JSON.stringify(filteredTracks) !== JSON.stringify(newTracks)) {
+            setFilteredTracks(newTracks);
+          }
         }
         setHasFetchedFavorites(true);
       });
     } else if (selection) {
-      const selectedTracks = allTracks.filter((track: Track) =>
-        selection.items.includes(track._id)
+      const selectedTracks = allTracks.filter((track: Track) => selection.items.includes(track._id));
+      if (JSON.stringify(filteredTracks) !== JSON.stringify(selectedTracks)) {
+        setFilteredTracks(selectedTracks);
+      }
+    }
+  }, [allTracks, favoriteTracks, selection, isFavorites, dispatch, favoritesLoading, hasFetchedFavorites]);
+
+  useEffect(() => {
+    if (isFavorites) {
+      setFilteredTracks(favoriteTracks);
+    }
+  }, [isFavorites, favoriteTracks]);
+
+  const uniqueGenres = useMemo(() => {
+    const genresSet = new Set(
+      filteredTracks.map((track) => (track.genre ? track.genre.toString().trim().toLowerCase() : 'без жанра'))
+    );
+    return Array.from(genresSet).map((genre) => genre.charAt(0).toUpperCase() + genre.slice(1));
+  }, [filteredTracks]);
+
+  const uniqueAuthors = useMemo(
+    () => Array.from(new Set(filteredTracks.map((track) => track.author))),
+    [filteredTracks]
+  );
+
+  const filteredAndSortedTracks = useMemo(() => {
+    let tracks = [...filteredTracks];
+    if (activeGenres.length > 0) {
+      tracks = tracks.filter((track) =>
+        track.genre && activeGenres.includes(String(track.genre).toLowerCase().trim())
       );
-      setFilteredTracks(selectedTracks);
     }
-  }, [allTracks, favoriteTracks.length, selection, isFavorites, dispatch, favoritesLoading, hasFetchedFavorites]);
-
-  const uniqueGenres = useMemo(() => 
-    Array.from(new Set(filteredTracks.map(track => (track.genre || 'Без жанра'))))
-      .map(genre => String(genre).charAt(0).toUpperCase() + String(genre).slice(1).toLowerCase()), 
-    [filteredTracks]
-  );
-
-  const uniqueAuthors = useMemo(() => 
-    Array.from(new Set(filteredTracks.map(track => track.author))),
-    [filteredTracks]
-  );
-
-  const playTrack = useCallback((track: Track) => {
-    if (audio) {
-      audio.pause();
+    if (activeAuthors.length > 0) {
+      tracks = tracks.filter((track) =>
+        track.author && activeAuthors.includes(String(track.author).toLowerCase().trim())
+      );
     }
-    const newAudio = new Audio(track.track_file);
-    newAudio.play();
-    setAudio(newAudio);
-    dispatch(setCurrentTrack(track));  
-  }, [audio, setAudio, dispatch]);
+    if (sortOrder === 'new') {
+      tracks.sort((a, b) => new Date(b.release_date).getTime() - new Date(a.release_date).getTime());
+    } else if (sortOrder === 'old') {
+      tracks.sort((a, b) => new Date(a.release_date).getTime() - new Date(b.release_date).getTime());
+    }
+    return tracks;
+  }, [filteredTracks, activeGenres, activeAuthors, sortOrder]);
+
+  const finalFilteredTracks = useMemo(() => {
+    return filteredAndSortedTracks.filter(
+      (track) =>
+        track.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        track.author?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+    );
+  }, [filteredAndSortedTracks, debouncedSearchTerm]);
+
+  const handleSelectAuthor = useCallback((author: string) => {
+    setActiveAuthors([author.toLowerCase().trim()]);
+  }, []);
+
+  const handleSelectGenre = useCallback((genre: string) => {
+    setActiveGenres([genre.toLowerCase().trim()]);
+  }, []);
+
+  const playTrack = useCallback(
+    (track: Track) => {
+      if (audio) audio.pause();
+      const newAudio = new Audio(track.track_file ?? '');
+      newAudio.play();
+      setAudio(newAudio);
+      dispatch(setCurrentTrack(track));
+    },
+    [audio, setAudio, dispatch]
+  );
 
   const togglePlayPauseTrack = useCallback(() => {
     if (audio) {
-      if (isPlaying) {
-        audio.pause();
-      } else {
-        audio.play();
-      }
-      dispatch(togglePlayPause());  
+      if (isPlaying) audio.pause();
+      else audio.play();
+      dispatch(togglePlayPause());
     }
   }, [audio, isPlaying, dispatch]);
 
   const nextTrackHandler = useCallback(() => {
-    dispatch(nextTrack());  
-    if (audio) {
-      audio.pause();
-    }
+    dispatch(nextTrack());
+    if (audio) audio.pause();
     const newTrack = store.getState().playlist.currentTrack;
     if (newTrack) {
-      const newAudio = new Audio(newTrack.track_file);
+      const newAudio = new Audio(newTrack.track_file ?? '');
       setAudio(newAudio);
-      newAudio.play().catch((err) => console.error("Не удалось воспроизвести трек: ", err));
+      newAudio.play().catch((err) => console.error('Failed to play track:', err));
     }
   }, [audio, setAudio, dispatch]);
 
   const previousTrackHandler = useCallback(() => {
-    dispatch(previousTrack());  
-    if (audio) {
-      audio.pause();
-    }
+    dispatch(previousTrack());
+    if (audio) audio.pause();
     const newTrack = store.getState().playlist.currentTrack;
     if (newTrack) {
-      const newAudio = new Audio(newTrack.track_file);
+      const newAudio = new Audio(newTrack.track_file ?? '');
       setAudio(newAudio);
-      newAudio.play().catch((err) => console.error("Не удалось воспроизвести трек: ", err));
+      newAudio.play().catch((err) => console.error('Failed to play track:', err));
     }
   }, [audio, setAudio, dispatch]);
 
-  const handleShowPopup = useCallback((type: PopupType) => {
-    dispatch(setPopups({ type, value: true }));
-    dispatch(setActiveFilter(type));
-  }, [dispatch]);
 
-  const handleClosePopup = useCallback((type: PopupType) => {
-    dispatch(setPopups({ type, value: false }));
-    if (activeFilter === type) {
-      dispatch(setActiveFilter(null));
-    }
-  }, [activeFilter, dispatch]);
-
-  if ((loading && !isFavorites) || (favoritesLoading && isFavorites)) {
-    return <div>Загрузка...</div>;
-  }
 
   if (error && !isFavorites) {
     return <div>{error}</div>;
@@ -175,25 +211,45 @@ const MainPlayList: React.FC<PlayListProps> = ({ isFavorites = false, selection 
   return (
     <div className={styles.playlist}>
       <h2 className={styles.title}>
-        {isFavorites ? 'Мои треки' : selection ? selection.name : 'Все треки'}
+        {isLoading ? (
+          <Skeleton height={50} width={700} />
+        ) : isFavorites ? (
+          'Мои треки'
+        ) : selection ? (
+          selection.name
+        ) : (
+          'Все треки'
+        )}
       </h2>
-      <PlayListFilters
-        activeFilter={activeFilter}
-        popups={popups}
-        getUniqueAuthors={uniqueAuthors}
-        getUniqueGenres={uniqueGenres}
-        handleShowPopup={handleShowPopup}
-        handleClosePopup={handleClosePopup}
-      />
-      <div className={styles.playlistContent}>
-        <PlayListTitles />
-        <TrackList 
-          tracks={filteredTracks.length > 0 ? filteredTracks : favoriteTracks} 
-          onPlayTrack={playTrack} 
-          currentTrackId={currentTrack?._id || null}
-          isPlaying={isPlaying} 
+
+      {isLoading ? (
+        <Skeleton className={styles.filter} margin-top={40} height={40} width="50%" />
+      ) : (
+        <PlayListFilters
+          activeFilter={null}
+          popups={popups}
+          getUniqueAuthors={uniqueAuthors}
+          getUniqueGenres={uniqueGenres}
+          handleShowPopup={(type: PopupType) => dispatch(setPopups({ type, value: true }))}
+          handleClosePopup={(type: PopupType) => dispatch(setPopups({ type, value: false }))}
+          onSelectAuthor={handleSelectAuthor}
+          onSelectGenre={handleSelectGenre}
+          onSelectReleaseDate={(releaseDate) =>
+            setSortOrder(releaseDate === 'Сначала новые' ? 'new' : 'old')
+          }
         />
+      )}
+
+      <div className={styles.playlistContent}>
+            <PlayListTitles/>
+            <TrackList
+              tracks={finalFilteredTracks}
+              onPlayTrack={playTrack}
+              currentTrackId={currentTrack?._id || null}
+              isPlaying={isPlaying}
+            />
       </div>
+
       <ControlBar
         currentTrack={currentTrack}
         audio={audio}

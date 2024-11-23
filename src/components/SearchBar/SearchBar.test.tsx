@@ -1,29 +1,35 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import SearchBar from './SearchBar';
 
-jest.mock('../../../public/icon/search.svg', () => ({
-  __esModule: true,
-  default: () => <svg data-testid="search-icon" />,
-}));
-
 describe('SearchBar Component', () => {
-  it('renders the search icon', () => {
-    render(<SearchBar />);
-    const icon = screen.getByTestId('search-icon');
-    expect(icon).toBeInTheDocument();
-  });
-
   it('renders the input field with the correct placeholder', () => {
-    render(<SearchBar />);
+    render(<SearchBar onSearch={() => {}} />);
     const input = screen.getByPlaceholderText('Поиск...');
     expect(input).toBeInTheDocument();
   });
 
-  it('allows typing in the input field', () => {
-    render(<SearchBar />);
+  it('calls onSearch when input value changes', async () => {
+    const mockOnSearch = jest.fn();
+    render(<SearchBar onSearch={mockOnSearch} />);
     const input = screen.getByPlaceholderText('Поиск...');
-    fireEvent.change(input, { target: { value: 'Test search' } });
-    expect(input).toHaveValue('Test search');
+
+    await userEvent.type(input, 'Test search');
+
+    expect(mockOnSearch).toHaveBeenCalledTimes(10);
+    expect(mockOnSearch).toHaveBeenLastCalledWith('Test search');
+  });
+
+  it('handles empty input correctly', async () => {
+    const mockOnSearch = jest.fn();
+    render(<SearchBar onSearch={mockOnSearch} />);
+    const input = screen.getByPlaceholderText('Поиск...');
+
+    await userEvent.type(input, 'Test');
+    await userEvent.clear(input);
+
+    expect(mockOnSearch).toHaveBeenCalledWith('');
   });
 });
+

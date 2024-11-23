@@ -1,4 +1,5 @@
-'use client'
+'use client';
+
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 interface AudioContextProps {
@@ -8,19 +9,24 @@ interface AudioContextProps {
 
 const AudioContext = createContext<AudioContextProps | null>(null);
 
-export const useAudio = () => {
+export const useAudio = (): AudioContextProps => {
   const context = useContext(AudioContext);
   if (!context) {
-    throw new Error("useAudio must be used within an AudioProvider");
+    throw new Error('useAudio must be used within an AudioProvider');
   }
   return context;
 };
 
-export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AudioProvider: React.FC<{
+  children: ReactNode;
+  value?: AudioContextProps;
+}> = ({ children, value }) => {
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
 
+  const contextValue = value || { audio, setAudio };
+
   return (
-    <AudioContext.Provider value={{ audio, setAudio }}>
+    <AudioContext.Provider value={contextValue}>
       {children}
     </AudioContext.Provider>
   );

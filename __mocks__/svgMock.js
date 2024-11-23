@@ -1,1 +1,6 @@
-module.exports = 'svgMock';
+module.exports = {
+    __esModule: true,
+    ReactComponent: (props) => <svg {...props} />,
+    default: 'SvgrMock',
+  };
+  

@@ -1,16 +1,33 @@
-import React from 'react'
-import styles from './search.module.css'
-import SearchIcon from '../../../public/icon/search.svg';
+import React, { useState } from 'react';
+import styles from './search.module.css';
 
-const SearchBar = () => {
+interface SearchBarProps {
+  onSearch: (term: string) => void;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
+  const [prevValue, setPrevValue] = useState('');
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim();
+    if (value !== prevValue) {
+      onSearch(value);
+      setPrevValue(value);
+    }
+  };
+
   return (
     <div className={styles.search}>
       <div className={styles.body}>
-          <SearchIcon className={styles.searchIcon}/>
-          <input className={styles.input} type="text" placeholder='Поиск...'/>
+        <input
+          className={styles.input}
+          type="text"
+          placeholder="Поиск..."
+          onChange={handleInputChange}
+        />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SearchBar
+export default SearchBar;

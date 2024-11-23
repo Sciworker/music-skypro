@@ -14,7 +14,7 @@ export type PopupType = 'author' | 'release_date' | 'genre';
 
 export interface ControlBarProps {
     currentTrack: Track | null;
-    audio: HTMLAudioElement | null;
+    audio?: HTMLAudioElement | null;
     onPlayPause: () => void;
     onNextTrack: () => void;
     onPreviousTrack: () => void;
@@ -43,9 +43,13 @@ export interface FiltersProps {
     getUniqueGenres: string[];
     handleShowPopup: (type: PopupType) => void;
     handleClosePopup: (type: PopupType) => void;
+    onSelectAuthor: (type: PopupType) => void;
+    onSelectGenre: (type: PopupType) => void;
+    onSelectReleaseDate: (type: PopupType) => void;
 }
 
 export interface PopupProps {
     content: string | string[];
     onClose: () => void;
+    onSelect?: (selectedItem: string) => void;
 }

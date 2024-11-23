@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './main.module.css';
 import SearchBar from '../SearchBar/SearchBar';
 import MainPlayList from '../MainPlayList/MainPlayList';
@@ -9,13 +9,14 @@ interface MainBlockProps {
 }
 
 const MainBlock: React.FC<MainBlockProps> = ({ isFavorites = false, selection }) => {
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
   return (
     <div className={styles.main}>
-      <SearchBar />
-      <MainPlayList isFavorites={isFavorites} selection={selection} />
+      <SearchBar onSearch={setSearchTerm} />
+      <MainPlayList isFavorites={isFavorites} selection={selection} searchTerm={searchTerm} />
     </div>
   );
 };
 
 export default MainBlock;
-

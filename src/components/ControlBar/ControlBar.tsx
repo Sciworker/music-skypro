@@ -11,7 +11,6 @@ import ShuffleIcon from '../../../public/icon/shuffle.svg';
 import VolumeIcon from '../../../public/icon/volume.svg';
 import LikeIcon from '../../../public/icon/like.svg';
 import LikedIcon from '../../../public/icon/liked.svg';
-import NoteIcon from '../../../public/icon/note.svg';
 import Link from 'next/link';
 import { changeDurationFormat } from '@/utils/changeDurationFormat';
 import { ControlBarProps } from '../../redux/playlist/types';
@@ -20,7 +19,7 @@ import { useAppDispatch } from '@/redux/store';
 import { addTrackToFavorites, removeTrackFromFavorites } from '@/redux/favorites/asyncActions';
 import { selectFavoriteTracks } from '@/redux/favorites/selectors';
 import { toast } from 'react-hot-toast';
-import { useAudio } from '../AudioContext/AudioContext'; 
+import { useAudio } from '../AudioContext/AudioContext';
 
 const ControlBar: React.FC<ControlBarProps> = ({
   currentTrack,
@@ -35,26 +34,29 @@ const ControlBar: React.FC<ControlBarProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const favoriteTracks = useSelector(selectFavoriteTracks);
+
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(0.5);
   const [currentTime, setCurrentTime] = useState(0);
+  const [repeatActive, setRepeatActive] = useState(isRepeat);
+  const [shuffleActive, setShuffleActive] = useState(isShuffle);
 
-  const { audio, setAudio } = useAudio();
+  const { audio } = useAudio();
 
   useEffect(() => {
     if (audio) {
       audio.volume = volume;
-  
+
       const updateProgress = () => {
         setProgress((audio.currentTime / audio.duration) * 100);
         setCurrentTime(audio.currentTime);
       };
-  
+
       const updateDuration = () => setProgress((audio.currentTime / audio.duration) * 100);
-  
+
       audio.addEventListener('timeupdate', updateProgress);
       audio.addEventListener('loadedmetadata', updateDuration);
-  
+
       return () => {
         audio.removeEventListener('timeupdate', updateProgress);
         audio.removeEventListener('loadedmetadata', updateDuration);
@@ -89,20 +91,36 @@ const ControlBar: React.FC<ControlBarProps> = ({
     }
   }, [currentTrack, isFavorite, dispatch]);
 
-  const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = Number(e.target.value) / 100;
-    setVolume(newVolume);
-    if (audio) audio.volume = newVolume;
-  }, [audio]);
+  const handleVolumeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newVolume = Number(e.target.value) / 100;
+      setVolume(newVolume);
+      if (audio) audio.volume = newVolume;
+    },
+    [audio]
+  );
 
-  const handleLineChange = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    if (audio) {
-      const { left, width } = e.currentTarget.getBoundingClientRect();
-      const newTime = ((e.clientX - left) / width) * audio.duration;
-      audio.currentTime = newTime;
-      setProgress((newTime / audio.duration) * 100);
-    }
-  }, [audio]);
+  const handleLineChange = useCallback(
+    (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      if (audio) {
+        const { left, width } = e.currentTarget.getBoundingClientRect();
+        const newTime = ((e.clientX - left) / width) * audio.duration;
+        audio.currentTime = newTime;
+        setProgress((newTime / audio.duration) * 100);
+      }
+    },
+    [audio]
+  );
+
+  const handleToggleRepeat = useCallback(() => {
+    onToggleRepeat();
+    setRepeatActive((prev) => !prev);
+  }, [onToggleRepeat]);
+
+  const handleToggleShuffle = useCallback(() => {
+    onToggleShuffle();
+    setShuffleActive((prev) => !prev);
+  }, [onToggleShuffle]);
 
   if (!audio) return null;
 
@@ -114,52 +132,71 @@ const ControlBar: React.FC<ControlBarProps> = ({
       <div className={styles.body}>
         <div className={styles.player}>
           <div className={styles.controlBtns}>
-            <PrevIcon className={styles.prevIcon} width={15} height={14} onClick={onPreviousTrack} />
-            {audio.paused ? (
-              <PlayIcon className={styles.playIcon} onClick={onPlayPause} width={18} height={18} />
-            ) : (
-              <PauseIcon className={styles.playIcon} onClick={onPlayPause} width={18} height={22} />
-            )}
-            <NextIcon className={styles.nextIcon} onClick={onNextTrack} />
-            <ReplayIcon 
-              width={18} 
-              height={11} 
-              className={isRepeat ? styles.activeReplayIcon : styles.replayIcon} 
-              onClick={onToggleRepeat} 
-            />
-            <ShuffleIcon
-            width={18}
-            height={11}
-            className={isShuffle ? styles.activeShuffleIcon : styles.shuffleIcon} 
-            onClick={onToggleShuffle}
-          />
+            <span data-testid="prev-button" className={styles.button} onClick={onPreviousTrack}>
+              <PrevIcon className={styles.icon} />
+            </span>
+            <span
+              data-testid={audio.paused ? 'play-button' : 'pause-button'}
+              className={styles.button}
+              onClick={onPlayPause}
+            >
+              {audio.paused ? <PlayIcon className={styles.icon} /> : <PauseIcon className={styles.icon} />}
+            </span>
+            <span data-testid="next-button" className={styles.button} onClick={onNextTrack}>
+              <NextIcon className={styles.icon} />
+            </span>
+            <span
+              data-testid="repeat-button"
+              className={`${styles.button} ${repeatActive ? styles.active : ''}`}
+              onClick={handleToggleRepeat}
+            >
+              <ReplayIcon className={styles.icon} />
+            </span>
+            <span
+              data-testid="shuffle-button"
+              className={`${styles.button} ${shuffleActive ? styles.active : ''}`}
+              onClick={handleToggleShuffle}
+            >
+              <ShuffleIcon className={styles.icon} />
+            </span>
           </div>
           {currentTrack && (
             <div className={styles.track}>
-              <div className={styles.image}><NoteIcon className={styles.note} /></div>
+              <div className={styles.image}>
+                <img src="../../note.png" alt="" />
+              </div>
               <div className={styles.wrap}>
-                <Link href='#' className={styles.author}>{currentTrack.name}</Link>
-                <Link href='#' className={styles.album}>{currentTrack.author}</Link>
+                <Link href="#" className={styles.author}>
+                  {currentTrack.name}
+                </Link>
+                <Link href="#" className={styles.album}>
+                  {currentTrack.author}
+                </Link>
               </div>
               <div className={styles.actions}>
-                {isFavorite ? (
-                  <LikedIcon className={styles.likedIcon} onClick={handleLikeClick} />
-                ) : (
-                  <LikeIcon className={styles.likeIcon} onClick={handleLikeClick} />
-                )}
+                <button
+                  data-testid={isFavorite ? 'liked-button' : 'like-button'}
+                  className={styles.button}
+                  onClick={handleLikeClick}
+                >
+                  {isFavorite ? <LikedIcon className={styles.icon} /> : <LikeIcon className={styles.icon} />}
+                </button>
               </div>
             </div>
           )}
         </div>
         <div className={styles.volume}>
-          <span>{changeDurationFormat(currentTime)} / {changeDurationFormat(totalTime)}</span>
+          <span>
+            {changeDurationFormat(currentTime)} / {changeDurationFormat(totalTime)}
+          </span>
           <div className={styles.volumeWrap}>
-            <VolumeIcon />
-            <input 
-              type="range" 
-              name='range' 
+            <VolumeIcon className={styles.icon} />
+            <input
+              type="range"
+              name="range"
+              aria-label="volume slider"
               value={volume * 100}
-              onChange={handleVolumeChange} 
+              onChange={handleVolumeChange}
             />
           </div>
         </div>

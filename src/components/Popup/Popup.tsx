@@ -1,11 +1,10 @@
-'use client'
+'use client';
 
 import React, { useRef, useEffect } from 'react';
 import styles from './popup.module.css';
 import { PopupProps } from '../../redux/playlist/types';
 
-
-const Popup: React.FC<PopupProps> = ({ content, onClose }) => {
+const Popup: React.FC<PopupProps> = ({ content, onClose, onSelect }) => {
   const popupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,7 +24,14 @@ const Popup: React.FC<PopupProps> = ({ content, onClose }) => {
       <div className={styles.popupContent}>
         {Array.isArray(content) ? (
           content.map((item, index) => (
-            <div key={index} className={styles.popupItem}>
+            <div
+              key={index}
+              className={styles.popupItem}
+              onClick={() => {
+                if (onSelect) onSelect(item);
+                onClose();
+              }}
+            >
               {item}
             </div>
           ))

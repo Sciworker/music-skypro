@@ -27,7 +27,7 @@ export default function Page() {
   }, [isLoggedIn, loading, router]);
 
   if (loading || !isLoggedIn) {
-    return <p>Loading...</p>;
+    return '';
   }
 
   return (

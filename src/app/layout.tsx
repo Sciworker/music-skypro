@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
-import ReduxProvider from '../components/ReduxProvider/ReduxProvider';
-import { Toaster } from 'react-hot-toast';
-import { AudioProvider } from '../components/AudioContext/AudioContext';
+import ReduxProvider from "../components/ReduxProvider/ReduxProvider";
+import { Toaster } from "react-hot-toast";
+import { AudioProvider } from "../components/AudioContext/AudioContext";
+import { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const montserrat = Montserrat({ subsets: ["cyrillic"] });
 
@@ -22,9 +24,11 @@ export default function RootLayout({
       <body className={montserrat.className}>
         <ReduxProvider>
           <AudioProvider>
-            <div className="wrapper">
-              <div className="container">{children}</div>
-            </div>
+            <SkeletonTheme baseColor="#313131" highlightColor="#525252" duration={3.5}>
+              <div className="wrapper">
+                <div className="container">{children}</div>
+              </div>
+            </SkeletonTheme>
             <Toaster position="bottom-center" reverseOrder={false} />
           </AudioProvider>
         </ReduxProvider>

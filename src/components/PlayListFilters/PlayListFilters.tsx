@@ -1,17 +1,24 @@
-import React, {memo} from 'react';
-import styles from './filters.module.css'
+import React, { memo } from 'react';
+import styles from './filters.module.css';
 import Popup from '../Popup/Popup';
 import { FiltersProps } from '../../redux/playlist/types';
 
+interface PlayListFiltersProps extends FiltersProps {
+  onSelectAuthor: (author: string) => void;
+  onSelectGenre: (genre: string) => void;
+  onSelectReleaseDate: (releaseDate: string) => void;
+}
 
-
-const PlayListFilters: React.FC<FiltersProps> = ({
+const PlayListFilters: React.FC<PlayListFiltersProps> = ({
   activeFilter,
   popups,
   getUniqueAuthors,
   getUniqueGenres,
   handleShowPopup,
   handleClosePopup,
+  onSelectAuthor,
+  onSelectGenre,
+  onSelectReleaseDate,
 }) => (
   <div className={styles.filter}>
     <div className={styles.searchBy}>Искать по:</div>
@@ -22,7 +29,11 @@ const PlayListFilters: React.FC<FiltersProps> = ({
       >
         <span>исполнителю</span>
         {popups.author && (
-          <Popup content={getUniqueAuthors} onClose={() => handleClosePopup('author')} />
+          <Popup
+            content={getUniqueAuthors}
+            onClose={() => handleClosePopup('author')}
+            onSelect={(selectedAuthor) => onSelectAuthor(selectedAuthor)}
+          />
         )}
       </div>
       <div
@@ -31,7 +42,11 @@ const PlayListFilters: React.FC<FiltersProps> = ({
       >
         <span>году выпуска</span>
         {popups.release_date && (
-          <Popup content={['По умолчанию', 'Сначала новые', 'Сначала старые']} onClose={() => handleClosePopup('release_date')} />
+          <Popup
+            content={['По умолчанию', 'Сначала новые', 'Сначала старые']}
+            onClose={() => handleClosePopup('release_date')}
+            onSelect={(selectedReleaseDate) => onSelectReleaseDate(selectedReleaseDate)}
+          />
         )}
       </div>
       <div
@@ -40,11 +55,15 @@ const PlayListFilters: React.FC<FiltersProps> = ({
       >
         <span>жанру</span>
         {popups.genre && (
-          <Popup content={getUniqueGenres} onClose={() => handleClosePopup('genre')} />
+          <Popup
+            content={getUniqueGenres}
+            onClose={() => handleClosePopup('genre')}
+            onSelect={(selectedGenre) => onSelectGenre(selectedGenre)}
+          />
         )}
       </div>
     </div>
   </div>
 );
 
-export default memo (PlayListFilters);
+export default memo(PlayListFilters);

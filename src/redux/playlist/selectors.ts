@@ -11,3 +11,6 @@ export const selectError = (state: RootState) => state.playlist.error;
 export const selectLoading = (state: RootState) => state.playlist.loading;
 export const selectActiveFilter = (state: RootState) => state.playlist.activeFilter;
 export const selectPopups = (state: RootState) => state.playlist.popups;
+export const selectFavoriteTracks = (state: RootState) => state.favorites?.favoriteTracks || [];
+export const selectFavoritesLoading = (state: RootState) => state.favorites?.loading || false;
+export const selectFavoritesError = (state: RootState) => state.favorites?.error || null;
