@@ -1,15 +1,22 @@
-import React from 'react'
-import styles from './main.module.css'
-import SearchBar from '../SearchBar/SearchBar'
-import PlayList from '../PlayList/PlayList'
+import React, { useState } from 'react';
+import styles from './main.module.css';
+import SearchBar from '../SearchBar/SearchBar';
+import MainPlayList from '../MainPlayList/MainPlayList';
 
-const MainBlock = () => {
-  return (
-    <div className={styles.main}>
-        <SearchBar />
-        <PlayList />
-    </div>
-  )
+interface MainBlockProps {
+  isFavorites?: boolean;
+  selection?: { name: string; items: number[] } | null;
 }
 
-export default MainBlock
+const MainBlock: React.FC<MainBlockProps> = ({ isFavorites = false, selection }) => {
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  return (
+    <div className={styles.main}>
+      <SearchBar onSearch={setSearchTerm} />
+      <MainPlayList isFavorites={isFavorites} selection={selection} searchTerm={searchTerm} />
+    </div>
+  );
+};
+
+export default MainBlock;

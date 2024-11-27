@@ -1,0 +1,97 @@
+.playlist {
+    margin-top: 51px;
+}
+
+.title {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 64px;
+    line-height: 72px;
+    letter-spacing: -0.8px;
+}
+
+
+
+.playlistContent {
+    margin-top: 51px;
+}
+
+
+.trackList {
+    margin-top: 24px;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    height: 400px;
+    padding-right: 12px;
+}
+
+.trackItem {
+    display: flex;
+    align-items: center;
+}
+
+.trackTitle {
+    width: 447px;
+    display: flex;
+    align-items: center;
+    gap: 17px;
+    color: #ffffff;
+}
+
+.image {
+    width: 51px;
+    height: 51px;
+    padding: 16px;
+    background: #313131;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+}
+
+.trackAuthor {
+    width: 321px;
+    color: #ffffff;
+}
+
+.trackAlbum {
+    width: 245px;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #696969;
+}
+
+.trackTime {
+    width: 245px;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #696969;
+    width: 67px;
+    display: flex;
+    align-items: center;
+    gap: 17px;
+}
+
+.note {
+    color: #313131;
+}
+
+.likeIcon {
+    color: #181818;
+}

@@ -7,10 +7,18 @@
     height: 78px;
 }
 
-.progress {
+.progressContainer {
     width: 100%;
+    cursor: pointer;
     height: 5px;
     background: #2e2e2e;
+    position: relative;
+}
+
+.progress {
+    height: 100%;
+    background-color: #B672FF; 
+    transition: width 0.1s linear;
 }
 
 .body {
@@ -29,6 +37,89 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 16px;
+}
+
+.button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity .3s ease;
+    flex-shrink: 0;
+}
+
+.button svg {
+    transition: color 0.2s ease;
+}
+
+.prevIcon,
+.nextIcon,
+.replayIcon,
+.activeReplayIcon,
+.shuffleIcon,
+.activeShuffleIcon,
+.playIcon,
+.pauseIcon,
+.likeIcon,
+.likedIcon {
+    width: 18px;
+    height: 18px;
+
+}
+
+.playIcon,
+.pauseIcon {
+    width: 28px;
+    height: 28px;
+}
+
+.button.active {
+    opacity: 0.5;
+  }
+
+.button:hover {
+   opacity: .5;
+}
+
+.activeReplayIcon,
+.activeShuffleIcon {
+    color: #ffffff;
+}
+
+.likeIcon {
+    color: #696969!important;
+    flex-shrink: 0;
+}
+
+.likedIcon {
+    flex-shrink: 0;
+}
+
+.track {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 1000;
+    margin-left: 20px;
+}
+
+.image {
+    min-width: 51px;
+    height: 51px;
+    background-color: #313131;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wrap {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
 .album {
@@ -39,7 +130,7 @@
     color: #ffffff;
 }
 
-.author  {
+.author {
     font-style: normal;
     font-weight: 400;
     font-size: 16px;
@@ -48,119 +139,36 @@
     white-space: nowrap;
 }
 
-.prevIcon {
-
-    margin-right: 23px;
-}
-
-.playIcon {
-    margin-right: 23px;
-}
-
-.nextIcon {
-    margin-right: 28px;
-}
-
-.replayIcon {
-    margin-right: 24px;
-}
-
-.track {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    gap: 12px;
-}
-
-.image {
-    min-width: 51px;
-    height: 51px;
-    background-color: #313131;
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
-    -webkit-box-pack: center;
-    -ms-flex-pack: center;
-    justify-content: center;
-    grid-row: 1;
-    -ms-grid-row-span: 2;
-    grid-column: 1;
-    grid-area: image;
-}
-
-.wrap {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-}
-
 .volume {
     padding-right: 92px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
-.volumeWrap{
+.volumeWrap {
     display: flex;
+    align-items: center;
     gap: 17px;
 }
 
-.note {
-    color: #313131;
+.volumeWrap input[type="range"] {
+    cursor: pointer;
+    height: 4px;
+    width: 100px;
+    background: #2e2e2e;
+    appearance: none;
+    border-radius: 2px;
 }
 
-.author {
-    min-width: 100px;
-}
-
-.actions {
-    display: flex;
-    align-items: center;
-    margin-left: 1%;
-}
-.playIcon {
+.volumeWrap input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    height: 10px;
+    width: 10px;
+    background: #2e2e2e;
+    border: 1px solid #fff;
+    border-radius: 50%;
     cursor: pointer;
 }
 
-.replayIcon {
-    color: #696969;
-    cursor: pointer;
-}
 
-.replayIcon:hover {
-    color: #acacac;
-}
-
-.shuffleIcon {
-    color: #696969;
-    cursor: pointer;
-}
-
-.shuffleIcon:hover {
-    color: #acacac;
-}
-
-
-.disLikeIcon {
-    fill: #181818;
-    margin-left: 28.5px;
-    color: #696969;
-}
-
-.disLikeIcon:hover {
-    color: #acacac;
-    cursor: pointer;
-}
-
-.likeIcon {
-    fill: #181818;
-    color: #696969;
-    cursor: pointer;
-}
-
-.likeIcon:hover {
-    color: #181818;
-    cursor: pointer;
-    color: #acacac;
-}

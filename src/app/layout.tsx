@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
+import ReduxProvider from "../components/ReduxProvider/ReduxProvider";
+import { Toaster } from "react-hot-toast";
+import { AudioProvider } from "../components/AudioContext/AudioContext";
+import { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
-const montserrat = Montserrat({ subsets: ["latin"] });
+const montserrat = Montserrat({ subsets: ["cyrillic"] });
 
 export const metadata: Metadata = {
   title: "Skypro",
@@ -17,9 +22,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={montserrat.className}>
-        <div className="wrapper">
-          <div className="container">{children}</div>
-        </div>
+        <ReduxProvider>
+          <AudioProvider>
+            <SkeletonTheme baseColor="#313131" highlightColor="#525252" duration={3.5}>
+              <div className="wrapper">
+                <div className="container">{children}</div>
+              </div>
+            </SkeletonTheme>
+            <Toaster position="bottom-center" reverseOrder={false} />
+          </AudioProvider>
+        </ReduxProvider>
       </body>
     </html>
   );
