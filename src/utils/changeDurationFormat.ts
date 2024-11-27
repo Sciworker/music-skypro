@@ -1,5 +1,11 @@
 export const changeDurationFormat = (seconds: number): string => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.round(seconds % 60); // Round seconds to the nearest integer
+  if (seconds < 0) {
+    seconds = 0;
+  }
+
+  const totalSeconds = Math.round(seconds);
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainingSeconds = totalSeconds % 60;
+
   return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
 };

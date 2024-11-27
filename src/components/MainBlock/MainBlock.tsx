@@ -5,7 +5,7 @@ import MainPlayList from '../MainPlayList/MainPlayList';
 
 interface MainBlockProps {
   isFavorites?: boolean;
-  selection?: any;
+  selection?: { name: string; items: number[] } | null;
 }
 
 const MainBlock: React.FC<MainBlockProps> = ({ isFavorites = false, selection }) => {

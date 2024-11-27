@@ -35,7 +35,7 @@ import Skeleton from 'react-loading-skeleton';
 
 interface PlayListProps {
   isFavorites?: boolean;
-  selection?: { name: string; items: number[] };
+  selection?: { name: string; items: number[] } | null;
   searchTerm: string;
 }
 
@@ -72,7 +72,7 @@ const MainPlayList: React.FC<PlayListProps> = ({ isFavorites = false, selection,
 
   useEffect(() => {
     if (!isFavorites && !selection && allTracks.length === 0) {
-      dispatch(fetchTracks()).then((result: any) => {
+      dispatch(fetchTracks()).then((result) => {
         if (result.payload && Array.isArray(result.payload)) {
           const newTracks = result.payload;
           if (JSON.stringify(allTracks) !== JSON.stringify(newTracks)) {
@@ -86,7 +86,7 @@ const MainPlayList: React.FC<PlayListProps> = ({ isFavorites = false, selection,
 
   useEffect(() => {
     if (isFavorites && !favoritesLoading && !hasFetchedFavorites) {
-      dispatch(fetchFavoriteTracks()).then((response: any) => {
+      dispatch(fetchFavoriteTracks()).then((response) => {
         if (response.payload && Array.isArray(response.payload)) {
           const newTracks = response.payload;
           if (JSON.stringify(filteredTracks) !== JSON.stringify(newTracks)) {
@@ -149,13 +149,28 @@ const MainPlayList: React.FC<PlayListProps> = ({ isFavorites = false, selection,
     );
   }, [filteredAndSortedTracks, debouncedSearchTerm]);
 
-  const handleSelectAuthor = useCallback((author: string) => {
-    setActiveAuthors([author.toLowerCase().trim()]);
-  }, []);
-
-  const handleSelectGenre = useCallback((genre: string) => {
-    setActiveGenres([genre.toLowerCase().trim()]);
-  }, []);
+  const handleSelectAuthor = useCallback(
+    (author: string) => {
+      setActiveAuthors((prev) =>
+        prev.includes(author.toLowerCase().trim())
+          ? prev.filter((a) => a !== author.toLowerCase().trim())
+          : [...prev, author.toLowerCase().trim()]
+      );
+    },
+    []
+  );
+  
+  const handleSelectGenre = useCallback(
+    (genre: string) => {
+      setActiveGenres((prev) =>
+        prev.includes(genre.toLowerCase().trim())
+          ? prev.filter((g) => g !== genre.toLowerCase().trim())
+          : [...prev, genre.toLowerCase().trim()]
+      );
+    },
+    []
+  );
+  
 
   const playTrack = useCallback(
     (track: Track) => {
@@ -237,6 +252,8 @@ const MainPlayList: React.FC<PlayListProps> = ({ isFavorites = false, selection,
           onSelectReleaseDate={(releaseDate) =>
             setSortOrder(releaseDate === 'Сначала новые' ? 'new' : 'old')
           }
+          activeAuthors={activeAuthors}
+          activeGenres={activeGenres}
         />
       )}
 

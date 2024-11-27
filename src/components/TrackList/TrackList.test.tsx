@@ -7,7 +7,7 @@ import { Track } from '@/redux/playlist/types';
 
 interface RootState {
   favorites: {
-    favoriteTracks: Array<any>;
+    favoriteTracks: Track[];
   };
   selections: {
     loading: boolean;

@@ -1,10 +1,14 @@
-'use client';
-
 import React, { useRef, useEffect } from 'react';
 import styles from './popup.module.css';
-import { PopupProps } from '../../redux/playlist/types';
 
-const Popup: React.FC<PopupProps> = ({ content, onClose, onSelect }) => {
+export interface PopupProps {
+  content: string | string[];
+  onClose: () => void;
+  onSelect: (item: string) => void;
+  activeItems: string[];
+}
+
+const Popup: React.FC<PopupProps> = ({ content, onClose, onSelect, activeItems }) => {
   const popupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,9 +30,11 @@ const Popup: React.FC<PopupProps> = ({ content, onClose, onSelect }) => {
           content.map((item, index) => (
             <div
               key={index}
-              className={styles.popupItem}
+              className={`${styles.popupItem} ${
+                activeItems.includes(item.toLowerCase()) ? styles.active : ''
+              }`}
               onClick={() => {
-                if (onSelect) onSelect(item);
+                onSelect(item);
                 onClose();
               }}
             >

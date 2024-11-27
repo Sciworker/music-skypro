@@ -27,3 +27,8 @@
     color: #B672FF;
 
 }
+
+.popupItem.active {
+    color: #b672ff;
+    text-decoration: underline;
+  }

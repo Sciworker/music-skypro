@@ -43,13 +43,14 @@ export interface FiltersProps {
     getUniqueGenres: string[];
     handleShowPopup: (type: PopupType) => void;
     handleClosePopup: (type: PopupType) => void;
-    onSelectAuthor: (type: PopupType) => void;
-    onSelectGenre: (type: PopupType) => void;
-    onSelectReleaseDate: (type: PopupType) => void;
-}
-
-export interface PopupProps {
+    onSelectAuthor: (author: string) => void;
+    onSelectGenre: (genre: string) => void;
+    onSelectReleaseDate: (releaseDate: 'По умолчанию' | 'Сначала новые' | 'Сначала старые') => void;
+  }
+  
+  export interface PopupProps {
     content: string | string[];
     onClose: () => void;
-    onSelect?: (selectedItem: string) => void;
-}
+    onSelect: (item: string) => void;
+    activeItems: string[];
+  }
